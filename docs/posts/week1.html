@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 1 · Fame, curation, and the islands — 02805 Network Stories</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>02805 Network Stories</h1>
+    <p class="tagline">Week 1 post</p>
+  </header>
+
+  <main class="wide">
+    <a class="back-link" href="../index.html">← Back to home</a>
+
+    <header class="post-header">
+      <h1>Fame, curation, and the islands</h1>
+      <p class="meta">Week 1 · Networks · Marvel Wikipedia snapshot (2026-08-26)</p>
+    </header>
+
+    <article>
+      <h2>What we asked</h2>
+      <p>
+        Who is <em>famous</em> in the Marvel Wikipedia network, and who is a <em>curator</em>?
+        In-degree counts how many other hero pages link <em>to</em> you — fame conferred by others.
+        Out-degree counts how many links you <em>write</em> — editorial work on your own page.
+        Are those the same people? And where are the disconnected islands — the heroes nobody links to, and the clusters outside the giant component?
+      </p>
+
+      <h2>What we did</h2>
+      <p>
+        We loaded the week-1 frozen snapshot from the course data page, adding all 303 nodes
+        <em>before</em> the 1,784 directed edges so the 17 isolates would not vanish.
+        Then we computed in- and out-degree distributions (linear and log–log, with the course's
+        <code>k+1</code> shift so zero-degree heroes survive the log axis), identified hub leaders,
+        mapped weakly connected components, and drew the giant component with a force-directed layout.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="value">303</span>
+          <span class="label">Nodes</span>
+        </div>
+        <div class="stat-box">
+          <span class="value">1,784</span>
+          <span class="label">Directed edges</span>
+        </div>
+        <div class="stat-box">
+          <span class="value">277</span>
+          <span class="label">Giant component</span>
+        </div>
+        <div class="stat-box">
+          <span class="value">17</span>
+          <span class="label">Isolates</span>
+        </div>
+      </div>
+
+      <figure>
+        <img src="../assets/week1/degree_distributions.png" alt="In-degree and out-degree distributions on linear and log-log axes">
+        <figcaption>Degree distributions — the in-degree tail stretches far; out-degree dies early.</figcaption>
+      </figure>
+
+      <h2>Hub leaders — fame ≠ curation</h2>
+      <p>
+        The leaderboard for in-degree and out-degree barely overlaps. Spider-Man sits at
+        <strong>106</strong> incoming links — linked by over a third of the active network.
+        Betsy Braddock leads out-degree at <strong>28</strong>, writing the most links on her own page.
+        Different mechanisms, different heroes.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th colspan="2">Top in-degree (famous)</th>
+            <th colspan="2">Top out-degree (curators)</th>
+          </tr>
+          <tr>
+            <th>Hero</th>
+            <th>Links in</th>
+            <th>Hero</th>
+            <th>Links out</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Spider-Man</td><td>106</td><td>Betsy Braddock</td><td>28</td></tr>
+          <tr><td>Hulk</td><td>64</td><td>Cloak and Dagger</td><td>24</td></tr>
+          <tr><td>Wolverine</td><td>60</td><td>Adam Warlock</td><td>22</td></tr>
+          <tr><td>Doctor Strange</td><td>50</td><td>Venom</td><td>21</td></tr>
+          <tr><td>Deadpool</td><td>33</td><td>She-Hulk</td><td>20</td></tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="../assets/week1/hub_table.png" alt="Extended hub comparison table">
+        <figcaption>Full top-10 comparison — different names dominate each column.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="../assets/week1/network_giant_component.png" alt="Force-directed layout of the giant component">
+        <figcaption>The giant component (277 heroes) — node size scales with in-degree; color shows incoming link count.</figcaption>
+      </figure>
+
+      <figure>
+        <img src="../assets/week1/islands_and_isolates.png" alt="Component sizes and list of isolates">
+        <figcaption>Outside the giant component: one 9-node island, 17 complete isolates, and nothing else.</figcaption>
+      </figure>
+
+      <h2>What surprised us</h2>
+      <ul>
+        <li>
+          <strong>Two different stories in one network.</strong> In-degree on log–log axes stretches all the way to Spider-Man at 106; the out-degree tail dies almost four times earlier. Incoming links are conferred by everyone else's editors; outgoing links require someone to sit down and write them — and that has a ceiling.
+        </li>
+        <li>
+          <strong>17 heroes are completely invisible.</strong> Zero links in either direction. They exist in the category roster but not in the link graph — worth asking why their Wikipedia pages mention no fellow superheroes (and no one mentions them).
+        </li>
+        <li>
+          <strong>Almost everyone is in one blob.</strong> 277 of 303 heroes sit in a single giant weakly connected component. The rest is one 9-node island plus isolates — not a scattered archipelago, but one supercontinent and a few specks of dust.
+        </li>
+        <li>
+          <strong>Collapsing to undirected hides the story.</strong> Directed edges: 1,784. Undirected pairs: 1,434, average degree ≈ 9.5. The directed view matters here — mixing in- and out-degree into one number would blur the fame-vs-curation split.
+        </li>
+      </ul>
+
+      <p>
+        Analysis code: <code>analysis/week1_explore.py</code> in our
+        <a href="https://github.com/Benyla/02805_SGI" target="_blank" rel="noopener">repo</a>.
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <a href="../index.html">Home</a>
+      ·
+      <a href="https://github.com/Benyla/02805_SGI" target="_blank" rel="noopener">GitHub repo</a>
+      ·
+      <a href="https://sunelehmann.com/socialgraphs2026-web/weeks/week1.html" target="_blank" rel="noopener">Course Week 1</a>
+    </p>
+  </footer>
+</body>
+</html>
