@@ -146,50 +146,45 @@ def plot_degree_distributions(stats: dict, out_path: Path):
     print(f"Wrote {out_path}")
 
 
-def plot_hub_table(stats: dict, names: dict[str, str], out_path: Path):
-    top_n = 10
-    top_in = stats["top_in"][:top_n] if len(stats["top_in"]) >= top_n else stats["top_in"]
-    # recompute full top 10 out
-    top_out = sorted(stats["out_deg"].items(), key=lambda x: -x[1])[:top_n]
+def plot_in_vs_out_degree(stats: dict, names: dict[str, str], out_path: Path):
+    """Scatter: in-degree vs out-degree — fame vs curation for every hero."""
+    in_deg = stats["in_deg"]
+    out_deg = stats["out_deg"]
+    isolates = set(stats["isolates"])
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.axis("off")
+    xs, ys, cols = [], [], []
+    for node in in_deg:
+        xs.append(in_deg[node])
+        ys.append(out_deg[node])
+        cols.append(MUTED if node in isolates else ACCENT)
 
-    col1 = ["Rank", "In-degree leader", "Links in"] + [
-        f"{i + 1}" for i in range(top_n)
-    ]
-    col2 = [""] * 3 + [names.get(n, n) for n, _ in top_in]
-    col3 = [""] * 3 + [str(d) for _, d in top_in]
-    col4 = ["", "Out-degree leader", "Links out"] + [
-        f"{i + 1}" for i in range(top_n)
-    ]
-    col5 = [""] * 3 + [names.get(n, n) for n, _ in top_out]
-    col6 = [""] * 3 + [str(d) for _, d in top_out]
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(xs, ys, c=cols, alpha=0.65, s=36, edgecolors=GRID, linewidths=0.4)
 
-    rows = list(zip(col1, col2, col3, col4, col5, col6))
-    table = ax.table(
-        cellText=rows,
-        loc="center",
-        cellLoc="left",
-        colWidths=[0.06, 0.22, 0.08, 0.06, 0.22, 0.08],
-    )
-    table.auto_set_font_size(False)
-    table.set_fontsize(9)
-    table.scale(1, 1.4)
+    # Label key outliers
+    label_nodes = {n for n, _ in stats["top_in"][:3]} | {n for n, _ in stats["top_out"][:3]}
+    for node in label_nodes:
+        short = names.get(node, node).split("(")[0].strip()
+        ax.annotate(
+            short,
+            (in_deg[node], out_deg[node]),
+            xytext=(6, 6),
+            textcoords="offset points",
+            fontsize=8,
+            color=FG,
+            bbox=dict(boxstyle="round,pad=0.25", facecolor=BG, edgecolor=GRID, alpha=0.9),
+        )
 
-    for (row, col), cell in table.get_celld().items():
-        cell.set_facecolor(BG)
-        cell.set_edgecolor(GRID)
-        cell.set_text_props(color=FG)
-        if row < 3:
-            cell.set_text_props(weight="bold", color=ACCENT)
+    ax.set_xlabel("In-degree (links received — fame)")
+    ax.set_ylabel("Out-degree (links written — curation)")
+    ax.set_title("Fame vs curation — every hero in the network", color=FG, pad=12)
+    ax.grid(True, linestyle="--", alpha=0.4)
 
-    ax.set_title(
-        "Fame vs curation — different heroes lead in- and out-degree",
-        color=FG,
-        fontsize=12,
-        pad=20,
-    )
+    # Legend for isolates
+    ax.scatter([], [], c=MUTED, label=f"Isolates ({len(isolates)})")
+    ax.scatter([], [], c=ACCENT, label="Connected heroes")
+    ax.legend(loc="lower right", facecolor=BG, edgecolor=GRID, labelcolor=FG)
+
     fig.savefig(out_path, dpi=150, facecolor=BG, bbox_inches="tight")
     plt.close(fig)
     print(f"Wrote {out_path}")
@@ -250,74 +245,6 @@ def plot_giant_component(g: nx.DiGraph, stats: dict, names: dict[str, str], out_
     print(f"Wrote {out_path}")
 
 
-def plot_islands_and_isolates(
-    g: nx.DiGraph, stats: dict, names: dict[str, str], out_path: Path
-):
-    isolates = stats["isolates"]
-    components = stats["components"]
-    non_giant = [c for c in components if len(c) > 1]
-
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-
-    # Left: component size distribution
-    sizes = stats["component_sizes"]
-    ax0 = axes[0]
-    labels = []
-    for i, s in enumerate(sizes):
-        if i == 0:
-            labels.append(f"Giant\n({s})")
-        elif s == 1:
-            labels.append("Isolate")
-        else:
-            labels.append(f"Island\n({s})")
-    colors_bar = [ACCENT if i == 0 else GREEN if s == 1 else MUTED for i, s in enumerate(sizes)]
-    ax0.bar(range(len(sizes)), sizes, color=colors_bar, edgecolor=GRID)
-    ax0.set_xticks(range(len(sizes)))
-    ax0.set_xticklabels(labels, fontsize=7, rotation=45, ha="right")
-    ax0.set_ylabel("Component size")
-    ax0.set_title("Connected components", color=FG)
-    ax0.grid(axis="y", linestyle="--", alpha=0.5)
-
-    # Right: isolate names (scrollable text block as bar of count + annotation)
-    ax1 = axes[1]
-    ax1.axis("off")
-    isolate_lines = [f"• {names.get(n, n)}" for n in sorted(isolates, key=lambda x: names.get(x, x))]
-    island_lines = []
-    for comp in non_giant:
-        members = ", ".join(names.get(n, n) for n in sorted(comp, key=lambda x: names.get(x, x)))
-        island_lines.append(f"Island ({len(comp)}): {members}")
-
-    text = f"17 isolates — zero links in either direction:\n\n"
-    text += "\n".join(isolate_lines[:10])
-    if len(isolate_lines) > 10:
-        text += f"\n… and {len(isolate_lines) - 10} more"
-    if island_lines:
-        text += "\n\nSmall islands outside the giant component:\n\n"
-        text += "\n".join(island_lines)
-    else:
-        text += "\n\nNo multi-node islands — only the giant component plus isolates."
-
-    ax1.text(
-        0.02,
-        0.98,
-        text,
-        transform=ax1.transAxes,
-        va="top",
-        ha="left",
-        fontsize=8,
-        color=FG,
-        family="monospace",
-        bbox=dict(boxstyle="round", facecolor=GRID, alpha=0.5, edgecolor=GRID),
-    )
-    ax1.set_title("Isolates & islands", color=FG)
-
-    fig.suptitle("Outside the giant component", color=FG, fontsize=13, y=1.02)
-    plt.tight_layout()
-    fig.savefig(out_path, dpi=150, facecolor=BG, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Wrote {out_path}")
-
-
 def main():
     apply_dark_style()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -327,9 +254,8 @@ def main():
     stats = sanity_checks(g, names)
 
     plot_degree_distributions(stats, OUT / "degree_distributions.png")
-    plot_hub_table(stats, names, OUT / "hub_table.png")
+    plot_in_vs_out_degree(stats, names, OUT / "in_vs_out_degree.png")
     plot_giant_component(g, stats, names, OUT / "network_giant_component.png")
-    plot_islands_and_isolates(g, stats, names, OUT / "islands_and_isolates.png")
 
     print("\nDone — figures in docs/assets/week1/")
 
