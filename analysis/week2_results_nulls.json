@@ -1,0 +1,432 @@
+{
+  "ex_2_8_45": {
+    "real_clustering": 0.3199469580339467,
+    "gnm": {
+      "mean": 0.03685204422163989,
+      "sd": 0.003469327672876276,
+      "z": 81.59935886874719,
+      "p_one_sided": 0.009900990099009901,
+      "max": 0.04669148606122599
+    },
+    "configuration": {
+      "mean": 0.10926840283540366,
+      "sd": 0.008156200990390257,
+      "z": 25.830476155107906,
+      "p_one_sided": 0.009900990099009901,
+      "max": 0.12801321126879048
+    },
+    "swap": {
+      "mean": 0.15468180037184365,
+      "sd": 0.009580172714943344,
+      "z": 17.2507492901792,
+      "p_one_sided": 0.009900990099009901,
+      "max": 0.1784750004045787
+    },
+    "links_lost_mean": 103.55,
+    "links_lost_pct": 7.2871217452498245,
+    "m": 1421,
+    "n": 277,
+    "hub_loss_pct": {
+      "106": 27.160377358490567,
+      "65": 19.815384615384616,
+      "63": 18.825396825396826,
+      "57": 17.89473684210526,
+      "41": 13.926829268292684
+    },
+    "low_degree_loss_pct": {
+      "1": 0.0,
+      "2": 0.3181818181818182,
+      "3": 0.6172839506172839,
+      "4": 1.18,
+      "5": 1.657142857142857
+    }
+  },
+  "shuffle_battery": {
+    "Average clustering C": {
+      "real": 0.30745425976480717,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 0.14308367881874243,
+        "sd": 0.006474021031447089,
+        "z": 25.38925656058986,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": 0.031274383918696,
+        "sd": 0.0027284339990498526,
+        "z": 101.22285382101519,
+        "p": 0.019801980198019802
+      }
+    },
+    "Transitivity": {
+      "real": 0.18249479011610598,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 0.11480301677086432,
+        "sd": 0.004175290879612663,
+        "z": 16.212468854749908,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": 0.03124646124181782,
+        "sd": 0.0024281331909013592,
+        "z": 62.28996392827303,
+        "p": 0.019801980198019802
+      }
+    },
+    "Triangles": {
+      "real": 1839.0,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 1156.87,
+        "sd": 42.07440619385681,
+        "z": 16.212468854749908,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": 140.69,
+        "sd": 11.192254717283985,
+        "z": 151.73975600978167,
+        "p": 0.019801980198019802
+      }
+    },
+    "Degree assortativity": {
+      "real": -0.0976926464912125,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": -0.12035455802559587,
+        "sd": 0.010517248935466876,
+        "z": 2.1547375814184226,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": -0.009323217274861226,
+        "sd": 0.027425252707192562,
+        "z": -3.222191976126275,
+        "p": 0.019801980198019802
+      }
+    },
+    "Mean distance (GC)": {
+      "real": 2.674331606759797,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 2.6317096256120243,
+        "sd": 0.012039866516726734,
+        "z": 3.5400709043209906,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": 2.77745092897708,
+        "sd": 0.004910835859083587,
+        "z": -20.99832394653202,
+        "p": 0.019801980198019802
+      }
+    },
+    "Diameter (GC)": {
+      "real": 6.0,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 5.47,
+        "sd": 0.5403889358787817,
+        "z": 0.9807750766364473,
+        "p": 0.9108910891089109
+      },
+      "gnm": {
+        "mean": 4.92,
+        "sd": 0.3074824459143229,
+        "z": 3.512395632175152,
+        "p": 0.039603960396039604
+      }
+    },
+    "Islands (components)": {
+      "real": 19.0,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 18.02,
+        "sd": 0.14070529413628968,
+        "z": 6.964912059746343,
+        "p": 0.0594059405940594
+      },
+      "gnm": {
+        "mean": 1.04,
+        "sd": 0.24287836253956213,
+        "z": 73.94648009072657,
+        "p": 0.019801980198019802
+      }
+    },
+    "Giant component size": {
+      "real": 277.0,
+      "invariant_by_construction": false,
+      "swap": {
+        "mean": 285.96,
+        "sd": 0.28141058827257937,
+        "z": -31.839597987411768,
+        "p": 0.019801980198019802
+      },
+      "gnm": {
+        "mean": 302.96,
+        "sd": 0.24287836253956213,
+        "z": -106.88477857211916,
+        "p": 0.019801980198019802
+      }
+    },
+    "Isolated heroes": {
+      "real": 17.0,
+      "invariant_by_construction": true,
+      "swap": {
+        "mean": 17.0,
+        "sd": 0.0,
+        "z": 0.0,
+        "p": 2.0
+      },
+      "gnm": {
+        "mean": 0.04,
+        "sd": 0.24287836253956213,
+        "z": 69.82919278055249,
+        "p": 0.019801980198019802
+      }
+    },
+    "Top hub's share of links": {
+      "real": 0.07391910739191074,
+      "invariant_by_construction": true,
+      "swap": {
+        "mean": 0.07391910739191075,
+        "sd": 1.3947701538996772e-17,
+        "z": 0.0,
+        "p": 2.0
+      },
+      "gnm": {
+        "mean": 0.013270571827057183,
+        "sd": 0.0011578251422977473,
+        "z": 52.38142906837752,
+        "p": 0.019801980198019802
+      }
+    }
+  },
+  "reciprocity": {
+    "real": 0.3923766816143498,
+    "gnm_mean": 0.01908071748878924,
+    "gnm_sd": 0.004740228468050532,
+    "swap_mean": 0.0652914798206278,
+    "swap_sd": 0.006987723926428296,
+    "ratio_vs_gnm": 20.564042303172737,
+    "ratio_vs_swap": 6.009615384615385,
+    "z_vs_swap": 46.808546708127935
+  },
+  "ex_2_9": {
+    "rows": {
+      "Marvel (real)": {
+        "sampled_mean_own": 9.705,
+        "sampled_mean_friend": 24.524,
+        "sampled_fraction_beaten": 0.748,
+        "mean_own": 10.027972027972028,
+        "mean_friend": 24.22328668145838,
+        "fraction_friend_at_least_as_popular": 0.7528865210007157,
+        "variance": 120.87334343977703,
+        "edge_endpoint_formula": 22.081589958159,
+        "n_with_friends": 286,
+        "n_samples": 1000
+      },
+      "Marvel, degree-preserving shuffle": {
+        "sampled_mean_own": 9.705,
+        "sampled_mean_friend": 23.527,
+        "sampled_fraction_beaten": 0.77,
+        "mean_own": 10.027972027972028,
+        "mean_friend": 23.73500248407209,
+        "fraction_friend_at_least_as_popular": 0.7604588179143704,
+        "variance": 120.87334343977703,
+        "edge_endpoint_formula": 22.081589958159,
+        "n_with_friends": 286,
+        "n_samples": 1000
+      },
+      "Marvel-sized random G(n,m)": {
+        "sampled_mean_own": 10.264,
+        "sampled_mean_friend": 10.552,
+        "sampled_fraction_beaten": 0.582,
+        "mean_own": 9.465346534653465,
+        "mean_friend": 10.403965404918337,
+        "fraction_friend_at_least_as_popular": 0.6322756324158709,
+        "variance": 8.737247982223966,
+        "edge_endpoint_formula": 10.388423988842398,
+        "n_with_friends": 303,
+        "n_samples": 1000
+      },
+      "BA, n=5000": {
+        "sampled_mean_own": 1.978,
+        "sampled_mean_friend": 14.38,
+        "sampled_fraction_beaten": 0.826,
+        "mean_own": 1.9996,
+        "mean_friend": 12.418068448219925,
+        "fraction_friend_at_least_as_popular": 0.8070757945104136,
+        "variance": 15.257199839999998,
+        "edge_endpoint_formula": 9.629725945189037,
+        "n_with_friends": 5000,
+        "n_samples": 1000
+      },
+      "BA-sized random G(n,m)": {
+        "sampled_mean_own": 2.334,
+        "sampled_mean_friend": 2.993,
+        "sampled_fraction_beaten": 0.742,
+        "mean_own": 2.3074082621740133,
+        "mean_friend": 3.0229806138933766,
+        "fraction_friend_at_least_as_popular": 0.7481366698537251,
+        "variance": 1.6534807742405295,
+        "edge_endpoint_formula": 3.024004800960192,
+        "n_with_friends": 4333,
+        "n_samples": 1000
+      }
+    },
+    "top_drivers": [
+      {
+        "name": "Spider-Man",
+        "degree": 106,
+        "pick_probability_pct": 5.646110148531167,
+        "crowns": 106
+      },
+      {
+        "name": "Hulk",
+        "degree": 65,
+        "pick_probability_pct": 2.7401821147318874,
+        "crowns": 33
+      },
+      {
+        "name": "Wolverine (character)",
+        "degree": 63,
+        "pick_probability_pct": 2.453137933547924,
+        "crowns": 19
+      },
+      {
+        "name": "Doctor Strange",
+        "degree": 57,
+        "pick_probability_pct": 2.4466726293581673,
+        "crowns": 14
+      },
+      {
+        "name": "Deadpool",
+        "degree": 41,
+        "pick_probability_pct": 1.9034898084672462,
+        "crowns": 9
+      },
+      {
+        "name": "She-Hulk",
+        "degree": 37,
+        "pick_probability_pct": 1.5857366303525993,
+        "crowns": 8
+      },
+      {
+        "name": "Phoenix (Guardians of the Galaxy)",
+        "degree": 32,
+        "pick_probability_pct": 0.9097749951177183,
+        "crowns": 7
+      },
+      {
+        "name": "Scarlet Witch",
+        "degree": 32,
+        "pick_probability_pct": 0.7742213704480214,
+        "crowns": 4
+      },
+      {
+        "name": "Black Panther (character)",
+        "degree": 31,
+        "pick_probability_pct": 0.9938323566273302,
+        "crowns": 1
+      },
+      {
+        "name": "Venom (character)",
+        "degree": 29,
+        "pick_probability_pct": 1.025207852933009,
+        "crowns": 0
+      }
+    ],
+    "kings": [
+      {
+        "name": "Spider-Man",
+        "crowns": 106,
+        "degree": 106
+      },
+      {
+        "name": "Hulk",
+        "crowns": 33,
+        "degree": 65
+      },
+      {
+        "name": "Wolverine (character)",
+        "crowns": 19,
+        "degree": 63
+      },
+      {
+        "name": "Doctor Strange",
+        "crowns": 14,
+        "degree": 57
+      },
+      {
+        "name": "Deadpool",
+        "crowns": 9,
+        "degree": 41
+      },
+      {
+        "name": "She-Hulk",
+        "crowns": 8,
+        "degree": 37
+      },
+      {
+        "name": "Hercules (Marvel Comics)",
+        "crowns": 7,
+        "degree": 26
+      },
+      {
+        "name": "Phoenix (Guardians of the Galaxy)",
+        "crowns": 7,
+        "degree": 32
+      }
+    ],
+    "n_local_maxima": 2,
+    "local_maxima": [
+      {
+        "name": "Spider-Man",
+        "degree": 106
+      },
+      {
+        "name": "Radian (Morituri)",
+        "degree": 6
+      }
+    ],
+    "n_strict_local_maxima": 2,
+    "n_active": 286,
+    "worse_than_friends": 250,
+    "worse_than_friends_pct": 87.41258741258741
+  },
+  "grow_marvel": {
+    "m_ba": 5,
+    "real": {
+      "n": 303,
+      "m": 1434,
+      "k_max": 106,
+      "k_min": 0,
+      "mean_degree": 9.465346534653465,
+      "clustering": 0.30745425976480717,
+      "transitivity": 0.18249479011610598,
+      "mean_distance": 2.674331606759797,
+      "diameter": 6,
+      "assortativity": -0.0976926464912125,
+      "isolates": 17,
+      "components": 19,
+      "gc_size": 277
+    },
+    "ba": {
+      "n": 303,
+      "m": 1490,
+      "k_max": 49,
+      "k_min": 5,
+      "mean_degree": 9.834983498349835,
+      "clustering": 0.0816769631912005,
+      "transitivity": 0.06978891820580475,
+      "mean_distance": 2.628527091119708,
+      "diameter": 4,
+      "assortativity": -0.06021746692556323,
+      "isolates": 0,
+      "components": 1,
+      "gc_size": 303
+    }
+  }
+}

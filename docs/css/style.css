@@ -288,3 +288,353 @@ table.data-table tr:hover td {
     padding: 1.5rem 1rem 3rem;
   }
 }
+
+/* ---------------------------------------------------------------- week 2 --
+   Callouts, the shuffle explorable, and the worked-solutions layout. */
+
+.tldr {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 1.75rem 0;
+}
+
+.tldr h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+}
+
+.tldr ol,
+.tldr ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.tldr li {
+  margin-bottom: 0.45rem;
+}
+
+.tldr li:last-child {
+  margin-bottom: 0;
+}
+
+.callout {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-green);
+  border-radius: 8px;
+  padding: 1rem 1.3rem;
+  margin: 1.5rem 0;
+}
+
+.callout.warn {
+  border-left-color: #f0883e;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout .callout-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+article h3 {
+  margin: 1.6rem 0 0.5rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+article code {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-size: 0.9em;
+}
+
+article pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+article pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.table-scroll table.data-table {
+  margin: 0;
+  min-width: 560px;
+}
+
+table.data-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+table.data-table th.num {
+  text-align: right;
+}
+
+.z-dies {
+  color: #f778ba;
+  font-weight: 600;
+}
+
+.z-lives {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.z-frozen {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* --- the shuffle explorable --- */
+
+.explorable {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 2rem 0;
+  box-shadow: 0 0 28px var(--glow);
+}
+
+.explorable > h3 {
+  margin: 0 0 0.15rem;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.explorable .sm-sub {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.sm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.sm-controls select,
+.sm-controls button {
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.42rem 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.sm-controls select {
+  flex: 1 1 260px;
+  cursor: pointer;
+}
+
+.sm-controls button:hover:not(:disabled),
+.sm-controls select:hover {
+  border-color: var(--accent);
+}
+
+.sm-controls button[data-role="run"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  min-width: 190px;
+}
+
+.sm-controls button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.sm-blurb {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 0.9rem;
+  min-height: 2.4em;
+}
+
+.sm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.sm-body canvas {
+  width: 100%;
+  height: 260px;
+  display: block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.sm-readout {
+  font-size: 0.9rem;
+}
+
+.sm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.42rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sm-row:last-child {
+  border-bottom: none;
+}
+
+.sm-row span {
+  color: var(--text-muted);
+}
+
+.sm-row strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sm-status {
+  margin: 0.85rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .sm-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- worked solutions --- */
+
+.ex {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+.ex > h2 {
+  margin: 0;
+  padding: 0.85rem 1.2rem;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.ex > h2 .tag {
+  float: right;
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding-top: 0.3rem;
+}
+
+.ex-body {
+  padding: 0.4rem 1.2rem 1rem;
+}
+
+.ex-body h3 {
+  margin: 1.2rem 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--accent-green);
+}
+
+.ex-body h3:first-child {
+  margin-top: 0.9rem;
+}
+
+.ex-body figure {
+  margin: 1.2rem 0;
+}
+
+.toc {
+  columns: 2;
+  column-gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 2rem;
+  font-size: 0.95rem;
+}
+
+.toc li {
+  margin-bottom: 0.35rem;
+  break-inside: avoid;
+}
+
+@media (max-width: 600px) {
+  .toc {
+    columns: 1;
+  }
+}
+
+.post-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2.5rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.post-nav a {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.92rem;
+}
+
+.post-nav a:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.post-list .post-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  margin-left: 0.5rem;
+  vertical-align: 0.12em;
+}

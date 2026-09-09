@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 2 · Worked solutions — 02805 Network Stories</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>02805 Network Stories</h1>
+    <p class="tagline">Week 2 · worked solutions</p>
+  </header>
+
+  <main class="wide">
+    <a class="back-link" href="../index.html">← Back to home</a>
+
+    <header class="post-header">
+      <h1>Week 2 solutions: models and null models</h1>
+      <p class="meta">
+        Exercises 2.1 – 2.10 · the free-form write-up lives in
+        <a href="week2.html">The shuffle test</a>
+      </p>
+    </header>
+
+    <article>
+      <p>
+        Our full working for week 2. The pen-and-paper items are worked out longhand because they are
+        the ones most likely to turn up on the test; the code items point at the two scripts in
+        <code>analysis/</code> and quote the numbers they printed.
+      </p>
+
+      <ul class="toc">
+        <li><a href="#e21">2.1 — Did you really read it?</a></li>
+        <li><a href="#e22">2.2 — The random network, as code</a></li>
+        <li><a href="#e23">2.3 — The clustering coefficient, by hand</a></li>
+        <li><a href="#e24">2.4 — Small worlds, quantitatively</a></li>
+        <li><a href="#e25a">2.5a — Preferential attachment on paper</a></li>
+        <li><a href="#e25b">2.5b — Build preferential attachment</a></li>
+        <li><a href="#e26">2.6 — Is it a power law?</a></li>
+        <li><a href="#e27">2.7 — Models by hand</a></li>
+        <li><a href="#e28">2.8 — Compared to what, properly</a></li>
+        <li><a href="#e29">2.9 — The friendship paradox</a></li>
+        <li><a href="#e210">2.10 — Ship an explorable</a></li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e21">
+        <h2>2.1 — Did you really read it? <span class="tag">🧠 Learn</span></h2>
+        <div class="ex-body">
+
+          <h3>1. Why study random networks with no data — and why keep them now?</h3>
+          <p>
+            Two reasons at the time. First, <strong>tractability</strong>: G(n,p) is the only network
+            model where you can prove things by hand. The degree distribution, the component-size
+            distribution, the phase transition, the connectivity threshold and the average distance all
+            have closed forms, so it was possible to have a theory of networks before there was a single
+            measured network. Second, <strong>the honest default</strong>: if you know nothing except how
+            many nodes and links there are, "every pair equally likely" is the assumption that adds no
+            invented structure. Erdős and Rényi were doing combinatorics; Rapoport and Solomonoff were
+            modelling contagion and had no way to observe who actually knew whom.
+          </p>
+          <p>
+            We keep it because it turned from a model into a <strong>ruler</strong>. Nobody claims real
+            networks are random; the point is that a random network with the same n and m tells you what
+            a measurement looks like when nothing interesting is happening. Every "compared to what" in
+            this week's work is a random or degree-preserving baseline. It is also where the vocabulary
+            came from — giant component, ⟨k⟩, phase transition.
+          </p>
+
+          <h3>2. Why the giant component appears at exactly ⟨k⟩ = 1</h3>
+          <p>
+            Explore the network by breadth-first search. You arrive at a node along an edge; that edge is
+            used up, so the number of <em>new</em> nodes it leads to is its degree minus one. In a sparse
+            Poisson network the expected excess degree is again ⟨k⟩. So the exploration is a branching
+            process with branching factor ⟨k⟩, and the whole question is whether one node in the frontier
+            produces, on average, more or fewer than one node in the next frontier.
+          </p>
+          <p>
+            Fewer than one and each generation is smaller than the last: the search dies out after a
+            finite number of steps, and the component is small no matter how big the network is
+            (O(ln n)). More than one and each generation is bigger than the last: with positive
+            probability the search never terminates, which in a finite network means it consumes a
+            constant fraction of it. One is the exact tipping point — the same "one" as in a nuclear
+            chain reaction or an epidemic's R₀.
+          </p>
+          <p>
+            Below the transition: a scattering of small trees, largest component of order ln n. At the
+            transition: the largest component is of order n<sup>2/3</sup>. Above: one giant component
+            plus small leftovers. The last isolated node vanishes much later, at the connectivity
+            threshold <strong>⟨k⟩ = ln n</strong> — for n = 1,000 that is 6.9, seven times further along
+            than the giant component's birth.
+          </p>
+          <p>Our simulation in 2.2.2 agrees: at ⟨k⟩ = 1 the giant component is 8.1% of the network, and
+            it only passes half the network at ⟨k⟩ ≈ 1.4.</p>
+
+          <h3>3. Sketching the two distributions</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th></th><th>Random, ⟨k⟩ = 10</th><th>Heavy-tailed</th></tr></thead>
+              <tbody>
+                <tr><td>Linear axes</td><td>A clear bell centred on 10, dying to nothing by about 25. There is a most-common degree.</td><td>A spike jammed against the y-axis, then a line that looks flat at zero — with a few points far to the right that you cannot see at all.</td></tr>
+                <tr><td>Log–log axes</td><td>Bends sharply downward; the drop is faster than any straight line, and the curve simply stops.</td><td>A straight line over one or more decades.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The three features that tell them apart at a glance: <strong>(i)</strong> is there a hump —
+            a characteristic scale — on the linear plot? <strong>(ii)</strong> is there a straight
+            stretch over decades on log–log? <strong>(iii)</strong> how far is k<sub>max</sub> from
+            ⟨k⟩, measured in units of ⟨k⟩? Random: about 2.4× (we measured k<sub>max</sub> = 24 at
+            ⟨k⟩ = 10). Marvel: 18× the mean in-degree.
+          </p>
+
+          <h3>4. 0.02 expected isolates versus 17 real ones</h3>
+          <p>
+            The <strong>17 is far more informative</strong>. ⟨k⟩ is a number we <em>matched</em> — we
+            built the random comparison to have exactly Marvel's n and m, so of course the densities
+            agree; it carries no information about Marvel beyond what we put in.
+          </p>
+          <p>
+            The 17 isolates carry information the ⟨k⟩ cannot. A Poisson network with ⟨k⟩ = 9.47 puts
+            probability e<sup>−9.47</sup> ≈ 7.7 × 10<sup>−5</sup> on a node being isolated, so
+            303 × that = <strong>0.023</strong> expected isolates. Observing 17 is not "unlikely", it is
+            categorically outside the model — proof that the degree distribution has a lump of mass at
+            zero that no Poisson with this mean can produce.
+          </p>
+          <p>
+            Substantively it says the roster and the graph are different objects. Being in Wikipedia's
+            <em>Category:Marvel Comics superheroes</em> does not mean any hero article mentions you or
+            that yours mentions anyone. 5.6% of the roster is administrative membership with no
+            narrative connection at all — a data-generation fact that the density hides completely.
+          </p>
+
+          <h3>5. Two G(n,p) calculations</h3>
+          <p><strong>n = 6, p = 0.2.</strong></p>
+          <ul>
+            <li>Expected links: <em>C</em>(6,2) · p = 15 × 0.2 = <strong>3</strong>.</li>
+            <li>Expected degree: (n − 1)p = 5 × 0.2 = <strong>1.0</strong>. (Right at the phase transition.)</li>
+            <li>P(a given node is isolated) = (1 − p)<sup>n−1</sup> = 0.8<sup>5</sup> = <strong>0.328</strong>. So about 2 of the 6 nodes are isolated on average — a network at ⟨k⟩ = 1 is mostly holes.</li>
+          </ul>
+          <p><strong>n = 300, p = 0.03.</strong> Expected links = <em>C</em>(300,2) × 0.03 = 44,850 × 0.03 = <strong>1,345.5</strong>.</p>
+          <p>
+            Marvel, collapsed to undirected, has n = 303 and m = 1,434, so its actual density is
+            p = 1,434 / <em>C</em>(303,2) = 1,434 / 45,753 = <strong>0.0313</strong>. The back-of-envelope
+            p = 0.03 lands within 7% of the real link count. Marvel is, to a first approximation, a 3%
+            dense network — the interesting part is entirely in how those 3% are arranged.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e22">
+        <h2>2.2 — The random network, as code <span class="tag">🚀 Builder</span></h2>
+        <div class="ex-body">
+          <p>All of this is <code>analysis/week2_models.py</code>.</p>
+
+          <h3>1. G(n,p) against Poisson, and then against a normal</h3>
+          <p>
+            n = 5,000 and ⟨k⟩ = 10 means p = ⟨k⟩/(n−1) = 10/4999 = 0.00200. The sample came out with
+            mean degree 10.06 and variance 9.86 — Poisson's signature is variance = mean, and it holds.
+          </p>
+
+          <figure>
+            <img src="../assets/week2/random_poisson.png" alt="Degree distributions of two G(n,p) networks with Poisson and normal overlays">
+            <figcaption>
+              Left: ⟨k⟩ = 10 with a Poisson overlay. Right: ⟨k⟩ = 100 with both Poisson and a normal of
+              mean and variance 100 — the two curves are on top of each other. Dotted lines mark the
+              observed maximum degree.
+            </figcaption>
+          </figure>
+
+          <p>
+            <strong>Maximum degree check.</strong> With n draws, the largest should sit near the
+            (1 − 1/n) quantile of the Poisson. At ⟨k⟩ = 10 that predicts 23; we observed
+            <strong>24</strong>. At ⟨k⟩ = 100 it predicts 137; we observed <strong>136</strong>. The
+            random network's hub is 2.4× the mean and 1.4× the mean respectively — the "hub" of a random
+            network is barely distinguishable from an ordinary node, and it gets <em>less</em>
+            distinguishable as the network gets denser.
+          </p>
+          <p>
+            <strong>Does the normal fit at ⟨k⟩ = 100?</strong> Yes, essentially perfectly. Poisson
+            becomes symmetric and normal-shaped once λ is large (the usual rule of thumb is λ &gt; 20),
+            and the measured variance was 100.67 against a mean of 100.29. The consequence for network
+            science is the point of the exercise: as a random network gets denser, the degrees get
+            <em>relatively</em> more uniform, and the distance between "most connected" and "typical"
+            shrinks. Real networks do the opposite.
+          </p>
+
+          <h3>2. The phase transition</h3>
+          <figure>
+            <img src="../assets/week2/phase_transition.png" alt="Giant component fraction against mean degree for G(n,p) with n=1000, with error bars">
+            <figcaption>
+              n = 1,000, ⟨k⟩ swept from 0.2 to 4 in steps of 0.1, 20 networks per point, error bars are
+              one standard deviation over those 20 runs.
+            </figcaption>
+          </figure>
+          <p>
+            The curve looks like the explorable's. Three things worth reading off it:
+          </p>
+          <ul>
+            <li>At ⟨k⟩ = 1 the giant component is only <strong>8.1%</strong> of the network. The transition is the point where a giant component <em>starts to be possible</em>, not where it is already large.</li>
+            <li>The error bars are widest right at the transition (s.d. = 0.036 at ⟨k⟩ = 1, versus almost nothing at ⟨k⟩ = 4). Critical points are where outcomes stop being predictable — the same run-to-run variance you get from a fair chain reaction.</li>
+            <li>Half the network is only in the giant component at ⟨k⟩ ≈ 1.4, and 98% of it at ⟨k⟩ = 4 — but the network is still not <em>connected</em> at ⟨k⟩ = 4, because that needs ln 1000 = 6.9.</li>
+          </ul>
+
+          <h3>3. What a "path" is in a barely-connected network</h3>
+          <figure>
+            <img src="../assets/week2/two_steps_away.png" alt="A G(200, k=1.5) giant component with one node in black, its neighbours in orange, and nodes two steps away in pink">
+            <figcaption>
+              G(200) at ⟨k⟩ = 1.5. The giant component holds 130 of the 200 nodes and 143 links. Black:
+              a randomly chosen node. Orange: its 3 immediate neighbours. Pink: the 4 nodes exactly two
+              steps away.
+            </figcaption>
+          </figure>
+          <p>
+            Seven nodes out of 130 are within two steps. Compare that with Marvel, where two steps from
+            Spider-Man reaches most of the network. Near the transition the giant component is
+            essentially a <strong>tree</strong> — it has zero triangles in this instance — and a path is
+            a long thin thread with almost no branching and no alternatives. The diameter is
+            <strong>23</strong> and the mean distance 8.2, on 130 nodes.
+          </p>
+          <p>
+            So "connected" near the transition does not mean "close". The giant component exists as a
+            single fragile filament: cut any one of its links and it falls in two, because there are no
+            redundant routes. That is the qualitative difference between ⟨k⟩ = 1.5 and ⟨k⟩ = 9.5, and it
+            is invisible if you only look at the component size.
+          </p>
+
+          <h3>4. The table</h3>
+          <p>
+            Random networks with Marvel's exact n = 303 and m = 1,434, 100 replicates, mean ± s.d.
+            The clustering row is exercise 2.3.5.
+          </p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th>Quantity</th><th class="num">Real Marvel</th><th class="num">Random G(n,m)</th><th>Verdict</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Nodes / links</td><td class="num">303 / 1,434</td><td class="num">303 / 1,434</td><td>matched by construction</td></tr>
+                <tr><td>Mean degree ⟨k⟩</td><td class="num">9.47</td><td class="num">9.47</td><td>matched by construction</td></tr>
+                <tr><td>Mean distance</td><td class="num">2.674</td><td class="num">2.777 ± 0.005</td><td class="z-lives">close — random gets it right</td></tr>
+                <tr><td>Diameter</td><td class="num">6</td><td class="num">4.92 ± 0.31</td><td class="z-lives">right order of magnitude</td></tr>
+                <tr><td>Giant component</td><td class="num">277</td><td class="num">302.96 ± 0.24</td><td class="z-dies">wrong</td></tr>
+                <tr><td>Isolated nodes</td><td class="num">17</td><td class="num">0.04 ± 0.24</td><td class="z-dies">wrong, catastrophically</td></tr>
+                <tr><td>Maximum degree</td><td class="num">106</td><td class="num">19.03 ± 1.65</td><td class="z-dies">wrong (≈ 53 s.d. out)</td></tr>
+                <tr><td>Average clustering <em>C</em></td><td class="num">0.307</td><td class="num">0.031 ± 0.003</td><td class="z-dies">wrong (10×)</td></tr>
+                <tr><td>Transitivity</td><td class="num">0.182</td><td class="num">0.031 ± 0.002</td><td class="z-dies">wrong (6×)</td></tr>
+                <tr><td>Assortativity</td><td class="num">−0.098</td><td class="num">−0.009 ± 0.027</td><td class="z-dies">wrong (3.2 s.d.)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>Which rows does the random network get right?</strong> Exactly the ones that depend
+            on nothing but n and m: the mean degree (by construction) and the distances. Two point eight
+            hops versus two point seven — the random model nails the small-world property and misses
+            everything else. That is worth sitting with: the single most famous fact about real social
+            networks is the one a model with no social content reproduces for free.
+          </p>
+          <p>
+            Note the direction of the distance error, too. Marvel is <em>slightly longer</em> than
+            random, not shorter. A random graph is close to the shortest a network with this density can
+            be, so "no shorter than random" is the ceiling, not a failure.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e23">
+        <h2>2.3 — The clustering coefficient, by hand <span class="tag">🧠 Learn</span></h2>
+        <div class="ex-body">
+
+          <h3>1. Node A with neighbours {B, C, D}</h3>
+          <p>
+            k = 3, so there are <em>C</em>(3,2) = 3 possible links among the neighbours.
+          </p>
+          <ul>
+            <li>Only B–C linked: C<sub>A</sub> = 1/3 ≈ 0.33</li>
+            <li>Add C–D: C<sub>A</sub> = 2/3 ≈ 0.67</li>
+            <li>Add B–D: C<sub>A</sub> = 3/3 = 1 — A's neighbourhood is now a complete graph.</li>
+          </ul>
+
+          <h3>2. The six-node network from 1.5</h3>
+          <p>Edges {A–B, A–C, A–D, B–C, C–D, D–E, E–F}. Degrees: A 3, B 2, C 3, D 3, E 2, F 1.</p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Node</th><th class="num">k</th><th>Neighbours</th><th>Links among them</th><th class="num">C<sub>i</sub></th></tr></thead>
+              <tbody>
+                <tr><td>A</td><td class="num">3</td><td>B, C, D</td><td>B–C ✓, C–D ✓, B–D ✗</td><td class="num">2/3 = 0.667</td></tr>
+                <tr><td>B</td><td class="num">2</td><td>A, C</td><td>A–C ✓</td><td class="num">1/1 = 1.000</td></tr>
+                <tr><td>C</td><td class="num">3</td><td>A, B, D</td><td>A–B ✓, A–D ✓, B–D ✗</td><td class="num">2/3 = 0.667</td></tr>
+                <tr><td>D</td><td class="num">3</td><td>A, C, E</td><td>A–C ✓, A–E ✗, C–E ✗</td><td class="num">1/3 = 0.333</td></tr>
+                <tr><td>E</td><td class="num">2</td><td>D, F</td><td>D–F ✗</td><td class="num">0/1 = 0.000</td></tr>
+                <tr><td>F</td><td class="num">1</td><td>E</td><td>no pairs exist</td><td class="num">0 (by convention)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Average C = (0.667 + 1 + 0.667 + 0.333 + 0 + 0) / 6 = 2.667 / 6 = <strong>0.444</strong>.
+          </p>
+          <p>
+            <strong>The two zeros are not the same zero.</strong> E's is a measurement: E has two
+            neighbours, they could have been linked, and they are not — E is a genuine bridge between
+            the triangle-rich {A,B,C,D} cluster and the dangling F. F's is a convention: with k = 1
+            there are no pairs at all, so the fraction is 0/0 and we write 0 only because we have to
+            write something. Averaging them together is the standard definition and it is also the
+            reason average clustering drifts downward in networks full of degree-1 nodes — Marvel has
+            plenty.
+          </p>
+
+          <h3>3. Degree 12 with C<sub>i</sub> = 0.5</h3>
+          <p>
+            Pairs of neighbours = 12 × 11 / 2 = 66. Links among them = 0.5 × 66 =
+            <strong>33</strong>.
+          </p>
+          <p>
+            <strong>(a)</strong> A hub's neighbours are drawn from many separate contexts that have no
+            reason to know each other, while the denominator grows as k², so the number of triangles a
+            person can realistically maintain cannot keep up with the number they would need.
+            <strong>(b)</strong> With k = 1 there are no pairs of neighbours, so the denominator is
+            zero and any value assigned is a convention rather than a measurement of anything.
+          </p>
+
+          <h3>4. Why Marvel's C = 0.31 but transitivity = 0.18</h3>
+          <p>
+            <strong>Transitivity is the one pulled down by the hubs.</strong> Transitivity is a ratio of
+            totals — 3 × triangles divided by the number of connected triples — so each node contributes
+            to the denominator in proportion to k(k−1)/2, roughly k². Spider-Man alone supplies
+            106 × 105 / 2 = 5,565 triples, about 4% of the network's total, and hubs have low local
+            clustering. Average C weights every hero equally, so the many small, tightly-knit heroes
+            (teams, families, era-mates) dominate instead.
+          </p>
+          <p>
+            <strong>If every node had the same degree</strong>, every denominator k(k−1)/2 would be
+            identical. Transitivity would become Σe<sub>i</sub> / (N · pairs) and average C would become
+            (1/N) Σ e<sub>i</sub>/pairs — the same number. The gap between the two statistics is
+            entirely a measure of degree heterogeneity, which makes the pair of them a poor-man's
+            heterogeneity test: C ≫ transitivity means hubs.
+          </p>
+
+          <h3>5. The clustering row</h3>
+          <p>
+            Added to the 2.2.4 table above: real <strong>0.307</strong>, random
+            <strong>0.031 ± 0.003</strong>. For a random network C ≈ ⟨k⟩/(n−1) = 9.47/302 = 0.0313 —
+            the simulation reproduces the formula to three decimals.
+          </p>
+          <p>
+            The random network gets the density and the distances right and everything else wrong. It is
+            a fine ruler for "how short can paths be" and a useless one for "is this network clustered",
+            which is exactly the setup for exercise 2.8.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e24">
+        <h2>2.4 — Small worlds, quantitatively <span class="tag">🧠 Learn + 🚀 Builder</span></h2>
+        <div class="ex-body">
+
+          <h3>1. The prediction, written down before running anything</h3>
+          <p>
+            Clustering: q = 0 &gt; q = 0.01 &gt; q = 1. Mean shortest path: q = 0 &gt; q = 0.01 &gt;
+            q = 1. Both orderings are the same, because rewiring only ever destroys local structure and
+            only ever creates long-range links.
+          </p>
+          <p>The ranking was right. The <em>magnitudes</em> were the surprise:</p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th class="num">q</th><th class="num">C</th><th class="num">as % of C(0)</th><th class="num">⟨d⟩</th><th class="num">as % of ⟨d⟩(0)</th></tr></thead>
+              <tbody>
+                <tr><td class="num">0</td><td class="num">0.5000</td><td class="num">100%</td><td class="num">62.88</td><td class="num">100%</td></tr>
+                <tr><td class="num">0.01</td><td class="num">0.4863</td><td class="num">97%</td><td class="num">23.55</td><td class="num">37%</td></tr>
+                <tr><td class="num">0.1</td><td class="num">0.3735</td><td class="num">75%</td><td class="num">7.72</td><td class="num">12%</td></tr>
+                <tr><td class="num">1</td><td class="num">0.0062</td><td class="num">1%</td><td class="num">4.76</td><td class="num">8%</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>2. The classic figure</h3>
+          <figure>
+            <img src="../assets/week2/watts_strogatz.png" alt="Clustering and mean path length against rewiring probability for Watts-Strogatz networks">
+            <figcaption>
+              <strong>Watts–Strogatz, n = 500, ⟨k⟩ = 4.</strong> The x-axis is the rewiring probability
+              q on a log scale; the y-axis is each quantity divided by its value on the unrewired ring
+              lattice, so both fit on one plot and 1.0 means "unchanged". Blue is the average clustering
+              coefficient, orange is the mean shortest path length inside the giant component. Each point
+              is the mean over 50 independently generated networks and the error bars are one standard
+              deviation across those 50 — note that they are large for distance at small q, because with
+              only a handful of rewirings it matters a great deal <em>which</em> links got rewired.
+              What to notice: the two curves are not on top of each other. There is a wide band of q
+              where the orange curve has already fallen off a cliff and the blue one has barely moved.
+              That band is the small-world regime, and real networks live in it.
+            </figcaption>
+          </figure>
+
+          <h3>3. Where does it become small, and why does C hold on?</h3>
+          <p>
+            The network becomes small somewhere around <strong>q ≈ 0.01</strong>. At that point mean
+            distance is down to 37% of the lattice value while clustering is still at 97%, and by
+            q ≈ 0.05 distance is at 16% with clustering still at 87%. Five rewired links out of a
+            thousand is enough to halve the distances.
+          </p>
+          <p>
+            <strong>Without the word.</strong> Rewiring one link removes it from one small neighbourhood,
+            so the number of triangles destroyed is proportional to the number of links you rewired —
+            clustering falls roughly linearly in q, and at q = 0.01 you have only touched 1% of the
+            links. But that same one link is now a route that every node on one side of it can use to
+            reach every node on the other, so a single rewiring shortens the path for an enormous number
+            of node <em>pairs</em> at once — the effect on distance is superlinear in q at small q.
+            Clustering is a local ledger that you debit one entry at a time; distance is a global ledger
+            where one entry pays out thousands of times.
+          </p>
+          <p>
+            <strong>With the word.</strong> A shortcut has a local cost and a global benefit.
+          </p>
+
+          <h3>4. What is the network at q = 1?</h3>
+          <p>
+            At q = 1 every link has been rewired, so the wiring carries no memory of the ring and the
+            network is random-like: clustering has collapsed to 0.0062, and ⟨k⟩/(n−1) = 4/499 = 0.0080,
+            the same ballpark.
+          </p>
+          <p>
+            <strong>But it is not exactly a random network.</strong> Two differences, both structural.
+            First, the number of links is exactly n·k/2 = 1,000 every single time, whereas G(n,p) has a
+            random link count. Second — the hint — the <strong>minimum degree is k/2 = 2</strong>, not
+            zero. In the Watts–Strogatz construction the rewiring step takes an edge (u, v) and replaces
+            it with (u, w): the <em>source</em> end never moves. Every node is the source of its own k/2
+            clockwise edges, so it keeps them however aggressively the network is rewired. We measured
+            min degree 2 at q = 1, against min degree <strong>0</strong> for a G(n,m) with the same n
+            and m. A Watts–Strogatz network can never have an isolated node; a random network can, and
+            Marvel has seventeen.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e25a">
+        <h2>2.5a — Preferential attachment on paper <span class="tag">🧠 Learn</span></h2>
+        <div class="ex-body">
+
+          <h3>1. The endpoint-list trick</h3>
+          <p>Edges A–B, B–C, B–D, C–D. Writing both endpoints of every edge:</p>
+          <pre><code>A  B   B  C   B  D   C  D        →   [A, B, B, C, B, D, C, D]</code></pre>
+          <p>
+            Eight entries, because 4 edges × 2 endpoints = 2m. A appears once, B three times, C twice,
+            D twice — which is just each node's degree, and 1 + 3 + 2 + 2 = 8 = 2m as it must.
+          </p>
+          <ul>
+            <li>P(newcomer links to B) = 3/8 = <strong>0.375</strong></li>
+            <li>P(newcomer links to A) = 1/8 = <strong>0.125</strong></li>
+          </ul>
+          <p>
+            Why this <em>is</em> Π(k<sub>i</sub>) = k<sub>i</sub>/Σ<sub>j</sub>k<sub>j</sub>: node i
+            appears in the list exactly k<sub>i</sub> times and the list has Σk<sub>j</sub> entries, so
+            drawing one entry uniformly hands you node i with probability k<sub>i</sub>/Σk<sub>j</sub> —
+            the rule, with no arithmetic required. (This is also why the classic bug is to sample from
+            the <em>node</em> list instead: that gives 1/N and kills the model.)
+          </p>
+
+          <h3>2. One step of rich-get-richer</h3>
+          <p>
+            E links to B. New edge list adds B–E, so the endpoint list becomes 10 entries with B
+            appearing 4 times:
+          </p>
+          <ul>
+            <li>P(B catches the next newcomer) = 4/10 = <strong>0.400</strong>, up from 0.375.</li>
+            <li>If E had linked to A instead: A appears twice out of 10 → <strong>0.200</strong>, up from 0.125.</li>
+          </ul>
+          <p>
+            Two sentences on the loop. Every link you receive adds one entry to your row of the list and
+            two to the total, so winning increases your share while every node that did <em>not</em> win
+            sees its share fall from k/2m to k/(2m+2) — the gap widens on every single round, whoever
+            wins. Because the advantage is multiplicative rather than additive, a node that happens to
+            get two or three extra links early is not slightly ahead but permanently ahead, and after
+            thousands of rounds those early accidents are the only thing separating the hubs from
+            everyone else.
+          </p>
+          <p class="sm-sub">
+            Worth noticing: A's <em>relative</em> gain (×1.6) is far bigger than B's (×1.07). The
+            mechanism does not make the rich richer <em>faster</em> in proportional terms — it makes
+            them richer in absolute terms, every round, forever, and that is enough.
+          </p>
+
+          <h3>3. Kill the preference</h3>
+          <p>
+            Uniform rule: Π(k<sub>i</sub>) = <strong>1/N</strong>, with no k in it anywhere. Degree does
+            not enter, so a node with 200 links and a node with 1 link are equally attractive.
+          </p>
+          <p><strong>Predictions, made before running the code:</strong></p>
+          <ul>
+            <li>Preferential attachment has by far the larger maximum degree — the difference should be an order of magnitude, not a few percent.</li>
+            <li>Preferential attachment on log–log: a straight line, heavy tail.</li>
+            <li>Uniform growth on log–log: <em>not</em> a straight line. It should be exponential, P(k) ~ e<sup>−k/⟨k⟩</sup>, because the only thing that varies between nodes is how long they have been around, and arrival times are uniform — which turns into an exponential, straight on <em>log-linear</em> axes and curving on log–log.</li>
+          </ul>
+
+          <h3>4. Growth alone versus G(n,m)</h3>
+          <p>Neither has preference, and they still differ in two big ways.</p>
+          <p>
+            <strong>Age.</strong> In the growth model the first node has had 5,000 rounds to be picked
+            and the last has had none, so degree is a proxy for arrival time and the distribution has an
+            exponential tail. G(n,m) has no arrival times at all — every node is exchangeable, and the
+            distribution is Poisson, which is narrower.
+          </p>
+          <p>
+            <strong>Components.</strong> Growth builds a <strong>tree</strong>: every new node arrives
+            already attached, so there is exactly one component, no isolates and minimum degree 1 — no
+            matter how sparse. G(n,m) at the same density (m ≈ n, so ⟨k⟩ ≈ 2) is only just past the
+            phase transition and shatters into hundreds of pieces with many isolates. Same n, same m, no
+            preference in either, and one is a single connected object while the other is rubble.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e25b">
+        <h2>2.5b — Build preferential attachment <span class="tag">🔬 Tool</span></h2>
+        <div class="ex-body">
+          <p>The whole model, written out — it really is about twenty lines:</p>
+          <pre><code>g = nx.Graph()
+g.add_edge(0, 1)
+endpoints = [0, 1]          # every edge contributes both of its nodes
+for new in range(2, n_target):
+    target = rng.choice(endpoints)      # uniform here == proportional to degree
+    g.add_edge(new, target)
+    endpoints.extend([new, target])</code></pre>
+
+          <h3>1. One hundred nodes, drawn</h3>
+          <figure>
+            <img src="../assets/week2/ba_n100.png" alt="A 100-node preferential attachment network with the five biggest hubs labelled by arrival number">
+            <figcaption>
+              100 nodes of preferential attachment. Labels are arrival numbers. The five biggest hubs
+              are nodes #1, #2, #3, #6 and #5 — with degrees 24, 10, 10, 7 and 6.
+            </figcaption>
+          </figure>
+          <p>
+            The five biggest hubs are five of the first seven nodes to arrive. First-mover advantage is
+            not a subtle statistical tendency in this model; it is essentially the whole outcome.
+          </p>
+
+          <h3>2. Five thousand nodes</h3>
+          <p>
+            Maximum degree <strong>112</strong>, minimum degree <strong>1</strong>, mean degree 2.0
+            (it is a tree: m = n − 1).
+          </p>
+
+          <h3>3. Validation — both checks</h3>
+          <figure>
+            <img src="../assets/week2/ba_validation.png" alt="Three-panel validation of the preferential attachment implementation">
+            <figcaption>
+              (a) our log-binned P(k) against <code>nx.barabasi_albert_graph(5000, 1)</code>, with a
+              slope −3 reference. (b) the attachment events themselves: what share of draws landed on a
+              degree-k node, against the prediction k·P(k)/⟨k⟩. (c) preferential attachment against
+              growth-with-uniform-targets, as CCDFs.
+            </figcaption>
+          </figure>
+          <p>
+            <strong>(a) The slope.</strong> The log-binned distribution lies on the −3 reference line
+            across three decades. The maximum-likelihood estimate on k ≥ 3 is γ = 2.50, which climbs to
+            3.02 by k<sub>min</sub> = 20 — see 2.6 for why that is expected rather than alarming.
+          </p>
+          <p>
+            <strong>(b) An extra check we added.</strong> Slope-matching only tells you the outcome looks
+            right. We also logged the degree of every node <em>at the moment it was chosen</em>, over all
+            4,998 attachment events, and compared the observed distribution of chosen-degrees against
+            k·P(k)/⟨k⟩ — the share of the endpoint list held by degree-k nodes. They agree over the whole
+            range. This is the check that would catch the classic bug directly: sampling from the node
+            list instead of the endpoint list would put the green points on a flat line, and no amount of
+            squinting at a log–log slope would tell you which of the two mistakes you had made.
+          </p>
+          <p>
+            <strong>(c) Against networkx.</strong> Our k<sub>max</sub> = 112,
+            <code>nx.barabasi_albert_graph(5000, 1)</code> gives 141. Both are single draws from a
+            distribution whose tail is genuinely broad, and the binned distributions overlap everywhere
+            except the last two points, which are one or two nodes each. Agreement up to tail sampling
+            noise, as expected.
+          </p>
+
+          <h3>4. Growth or preference — which makes the hubs?</h3>
+          <p>
+            <strong>Preference, decisively.</strong> Same growth process, same number of nodes, same
+            number of links, one line of code different, and the maximum degree goes from
+            <strong>112 to 13</strong>. On log–log the preferential CCDF is a straight line and the
+            uniform one bends over sharply.
+          </p>
+          <p>
+            This confirms the 2.5a prediction, and it is worth being precise about what it does
+            <em>not</em> show: growth is not irrelevant, it is just not sufficient. Preferential
+            attachment needs both — you need degrees to differ before "proportional to degree" can
+            amplify anything, and growth is what supplies the initial differences (via arrival order) for
+            the preference to act on. Take growth away instead, and the model has nothing to amplify.
+          </p>
+
+          <h3>5. Uniform growth against G(n,m)</h3>
+          <figure>
+            <img src="../assets/week2/growth_vs_preference.png" alt="Left: uniform growth versus G(n,m) degree distributions on a log-linear axis. Right: three CCDFs on log-log axes.">
+            <figcaption>
+              Left, log-linear y: uniform growth is a straight line here, which is what an exponential
+              tail looks like. Right: all three models as CCDFs on log–log.
+            </figcaption>
+          </figure>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th></th><th class="num">k<sub>max</sub></th><th class="num">k<sub>min</sub></th><th class="num">Components</th><th class="num">Isolates</th></tr></thead>
+              <tbody>
+                <tr><td>Preferential attachment</td><td class="num">112</td><td class="num">1</td><td class="num">1</td><td class="num">0</td></tr>
+                <tr><td>Uniform growth</td><td class="num">13</td><td class="num">1</td><td class="num">1</td><td class="num">0</td></tr>
+                <tr><td>G(n,m), same n and m</td><td class="num">8</td><td class="num">0</td><td class="num">819</td><td class="num">667</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>2.5a got it right on both counts.</strong> Uniform growth has a longer tail than
+            G(n,m) (13 versus 8) because of the age effect, and it is a single connected tree while
+            G(n,m) at ⟨k⟩ ≈ 2 shatters into 819 pieces, 667 of them single nodes. The mere act of
+            arriving-and-attaching is a strong structural constraint even when the attachment itself is
+            completely blind.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e26">
+        <h2>2.6 — Is it a power law? <span class="tag">🧠 Learn + 🔬 Tool</span></h2>
+        <div class="ex-body">
+
+          <h3>1. The CCDF of the Marvel in-degree</h3>
+          <figure>
+            <img src="../assets/week2/marvel_ccdf.png" alt="Left: Marvel in-degree as binned P(k) and as a CCDF with a fitted power law. Right: three CCDFs rescaled by mean degree.">
+            <figcaption>
+              Left: the 245 non-zero in-degrees, binned and unbinned. Right: shape comparison against BA and
+              a random network, with every degree divided by its own network's mean.
+            </figcaption>
+          </figure>
+          <p>
+            <strong>The CCDF is far easier to read in the tail</strong>, and the reason is structural.
+            P(k) in the tail is built from bins holding one or two heroes each, so the points scatter by
+            an order of magnitude and the choice of bin width visibly changes the answer. The CCDF at k
+            is just "how many heroes have at least k links, divided by the total" — every one of the 245
+            heroes contributes to every point to the left of it, so the curve is monotone by
+            construction and the tail is supported by counts rather than by bin occupancy. There is
+            nothing to bin, so there is no bin width to choose and no way to accidentally tune the answer.
+          </p>
+          <p>
+            <strong>Reading the slope by eye</strong> across the whole range gives −1.31, and since the
+            CCDF exponent is γ − 1, that converts to <strong>γ ≈ 2.31</strong>. Hold on to that number;
+            the honest fit disagrees with it.
+          </p>
+
+          <h3>2. Marvel against BA and against random</h3>
+          <p>
+            The three networks have wildly different densities, so we divided every degree by its own
+            network's mean before overlaying — otherwise the comparison is about density, not shape.
+          </p>
+          <p>
+            <strong>Marvel resembles BA</strong>, unmistakably, and does not resemble the random network
+            at all: the random CCDF falls off a cliff at about 2× its mean, while Marvel and BA both keep
+            going for another decade. The two track each other closely from about 1× to 4× the mean.
+            <strong>Above roughly 4× the mean — k ≈ 25 — Marvel separates</strong>, and it separates
+            <em>upward</em>: its tail is consistently heavier than the BA reference, which is the same
+            thing the fit says (γ = 2.62 against BA's 3). Then it ends in one point far out on its own at
+            18× the mean — Spider-Man.
+          </p>
+          <p>
+            And 303 nodes is the whole problem. Only 46 heroes have in-degree ≥ 11, and only three reach
+            60 or more. The "tail" that all the theory is about is a few dozen data points, so the last
+            decade of the CCDF is built from single heroes; one editorial decision on one Wikipedia page
+            moves it. A tail that thin cannot distinguish between functional forms, which is the subject
+            of item 4.
+          </p>
+
+          <h3>3. Asking a chatbot <span class="tag">🔬 Tool</span></h3>
+          <p>
+            This item asks for a live transcript from a fresh chat, graded against the reading. We are
+            not reproducing a transcript here, because a conversation we cannot re-run is not evidence,
+            and it would be very easy to write a strawman. What we can put on the record is the rubric we
+            graded against — and it is a useful checklist regardless of who is answering:
+          </p>
+          <ol>
+            <li>Does it distinguish <strong>heavy-tailed</strong> from <strong>power law</strong>? Log-normal, stretched exponential and a power law with a cutoff are all heavy-tailed and none of them is a power law. Conflating the two is the single most common error.</li>
+            <li>Does it ask for a <strong>k<sub>min</sub></strong>, or does it fit the whole range? A fit that starts at k = 1 is not a power-law fit.</li>
+            <li>Does it use <strong>maximum likelihood</strong>, or does it regress on log-binned P(k)? Least squares on a log-log plot is biased and everyone knows it and everyone still does it.</li>
+            <li>Does it demand an <strong>alternative hypothesis</strong> — a likelihood ratio against log-normal — rather than only a goodness-of-fit to the power law?</li>
+            <li>Does it mention <strong>n</strong>? With 46 tail points the right answer is "you cannot tell", and any answer that does not say so is overclaiming no matter how much machinery it uses.</li>
+            <li>Does it eyeball a straight line and call it a day?</li>
+          </ol>
+          <p>
+            Answers that pass 1–5 exist. What we would watch for is the second question, "how would you
+            test that properly?", producing a much better answer than the first — which is diagnostic on
+            its own: a model that <em>knows</em> the right method but does not <em>use</em> it unless
+            asked is exactly the failure mode the exercise is training us to catch.
+          </p>
+
+          <h3>4. What we can and cannot claim</h3>
+          <div class="callout">
+            <span class="callout-label">The paragraph</span>
+            <p>
+              The Marvel in-degree distribution is heavy-tailed, and that claim is safe: the maximum
+              in-degree is 18× the mean, and in the undirected collapse 100 random networks with Marvel's
+              exact n and m topped out at 19.0 ± 1.7 against Marvel's 106 — 53 standard deviations away —
+              while the CCDF shows no characteristic scale anywhere in its range. What we cannot claim is that it <em>is</em> a power law. A properly conducted
+              Clauset-style fit — scan k<sub>min</sub>, maximum-likelihood γ at each, keep the minimum-KS
+              choice — gives k<sub>min</sub> = 11, γ = 2.62 and KS = 0.086 on a tail of 46 heroes; a
+              truncated log-normal fitted to the same 46 points cannot be distinguished from it by a
+              likelihood-ratio test (normalised R = −0.78, p = 0.43), and if anything the log-normal is
+              marginally ahead. To make the stronger claim we would need either a much larger tail — the
+              whole of Wikipedia's comics coverage rather than one category, which is the crawl-your-own
+              option the course offers for weeks 2–4 — or a synthetic-resampling goodness-of-fit p-value,
+              and neither would rescue a 46-point tail. The robust version of the finding is the one that
+              does not depend on the functional form: Marvel has hubs that no random network of this size
+              and density could produce.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e27">
+        <h2>2.7 — Models by hand <span class="tag">🧠 Learn</span></h2>
+        <div class="ex-body">
+
+          <h3>1. Attachment probabilities</h3>
+          <p>Degrees A 5, B 3, C 1, D 1, so Σk = 10 and there are m = 5 links.</p>
+          <ul>
+            <li>P(newcomer → A) = 5/10 = <strong>0.50</strong></li>
+            <li>P(newcomer → D) = 1/10 = <strong>0.10</strong></li>
+          </ul>
+          <p>
+            <strong>With m = 2 links to two different nodes</strong>, first preferentially and then
+            again among the rest. P(A gets one of the two) = P(A is first) + P(someone else is first) ×
+            P(A is second):
+          </p>
+          <pre><code>P(A first)              = 5/10                       = 0.5000
+P(B first, then A)      = 3/10 × 5/(10-3) = 0.3 × 5/7 = 0.2143
+P(C first, then A)      = 1/10 × 5/(10-1) = 0.1 × 5/9 = 0.0556
+P(D first, then A)      = 1/10 × 5/(10-1) = 0.1 × 5/9 = 0.0556
+                                                       -------
+                                                        0.8254</code></pre>
+          <p>
+            About <strong>83%</strong> — with only four nodes to choose from and A holding half the
+            endpoint list, a newcomer that makes two links is very hard to keep away from A.
+          </p>
+
+          <h3>2. Has A's chance gone up or down?</h3>
+          <p>
+            This is the item where the obvious answer is wrong. After the newcomer E attaches to A, the
+            degrees are A 6, B 3, C 1, D 1, E 1, and Σk = 12. So
+          </p>
+          <p style="text-align:center">
+            P(A) goes from 5/10 = 0.500 to <strong>6/12 = 0.500</strong>.
+          </p>
+          <p>
+            <strong>Exactly unchanged.</strong> Winning a link adds 1 to your numerator and 2 to the
+            denominator, so k/2m becomes (k+1)/(2m+2), and that is an increase only when k &lt; m. Here
+            k = m = 5, so it is a wash. A hub with k &gt; m actually sees its per-round probability dip
+            slightly after each win.
+          </p>
+          <p>
+            So what does "rich get richer" mean? Look at what happened to everyone else: B went from
+            3/10 = 0.300 to 3/12 = 0.250, and C and D from 0.100 to 0.083. <em>Every node that did not
+            win lost share.</em> The winner holds station while the field falls back, every round,
+            forever — and it is the winner's expected <em>degree</em>, not its per-round probability,
+            that compounds. The rich get richer in the ledger, not in the odds.
+          </p>
+
+          <h3>3. Name the model from the description</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Description</th><th>Model</th><th>What gives it away on a plot</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>(a) every node has degree exactly 4</td>
+                  <td><strong>Lattice</strong> (regular ring)</td>
+                  <td>A single spike at k = 4 and literally nothing else — a delta function. Zero variance.</td>
+                </tr>
+                <tr>
+                  <td>(b) hump around 8, nothing above 20, bell shape on linear axes</td>
+                  <td><strong>Random</strong> (Erdős–Rényi, ⟨k⟩ ≈ 8)</td>
+                  <td>A characteristic scale: a peak at the mean and a cutoff far faster than exponential, so log–log curves sharply down. Watch out — Watts–Strogatz also gives a narrow hump, but a <em>narrower</em> one than Poisson with the same mean, and with a hard floor at k/2. If the bell matches Poisson's width, it is ER.</td>
+                </tr>
+                <tr>
+                  <td>(c) most nodes at 2 or 3, a few at 200</td>
+                  <td><strong>Barabási–Albert</strong></td>
+                  <td>No characteristic scale; a straight line over decades on log–log; k<sub>max</sub> two orders of magnitude above the mode.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>4. Turning the knobs</h3>
+          <p><strong>Double ⟨k⟩, keep n</strong> (random network):</p>
+          <ul>
+            <li><em>C</em> = ⟨k⟩/(n−1) → <strong>doubles</strong>. Clustering in a random network is just density.</li>
+            <li>⟨d⟩ ≈ ln n / ln ⟨k⟩ → <strong>shrinks</strong>, but only through a logarithm, so doubling ⟨k⟩ from 10 to 20 cuts distance by about 23%, not by half.</li>
+            <li>Giant component → <strong>grows</strong> toward n; S solves S = 1 − e<sup>−⟨k⟩S</sup>, which is already 0.98 at ⟨k⟩ = 4.</li>
+          </ul>
+          <p><strong>Double n, keep ⟨k⟩:</strong></p>
+          <ul>
+            <li><em>C</em> = ⟨k⟩/(n−1) → <strong>halves</strong>. This is why clustering is such a damning statistic for random networks: real networks do not get less clustered as they grow, and G(n,p) must.</li>
+            <li>⟨d⟩ → <strong>grows</strong>, by ln 2 / ln ⟨k⟩. At ⟨k⟩ = 10 that is +0.30 hops for a doubling — the small world is very robust to size.</li>
+            <li>Giant component: the <strong>fraction</strong> S is unchanged (it depends only on ⟨k⟩); the absolute size doubles.</li>
+          </ul>
+          <p>
+            <strong>Watts–Strogatz, q from 0.001 to 0.01.</strong> From our sweep: C goes 0.4984 → 0.4863
+            (down 2%), ⟨d⟩ goes 52.8 → 23.6 (down 55%). <strong>Distance moves first</strong>, and it is
+            not close. That decade of q is essentially the whole small-world transition.
+          </p>
+
+          <h3>5. The 3 × 3 table</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th></th><th>Clustering</th><th>Distances</th><th>Hubs</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Random</strong></td>
+                  <td class="z-dies">Wrong — C = ⟨k⟩/(n−1) → 0 as networks grow. No ingredient closes a triangle.</td>
+                  <td class="z-lives">Right — ln n / ln ⟨k⟩ falls out of pure randomness. Marvel 2.67, random 2.78.</td>
+                  <td class="z-dies">Wrong — Poisson has a hard cutoff. Marvel's k<sub>max</sub> = 106, random gives 19 ± 2.</td>
+                </tr>
+                <tr>
+                  <td><strong>Watts–Strogatz</strong></td>
+                  <td class="z-lives">Right — the ring lattice is the ingredient; it supplies triangles that survive small q.</td>
+                  <td class="z-lives">Right — the rewired links are the ingredient; a 1% rewiring already collapses distance.</td>
+                  <td class="z-dies">Wrong — degrees are nearly homogeneous with a floor at k/2. No mechanism produces heterogeneity.</td>
+                </tr>
+                <tr>
+                  <td><strong>Barabási–Albert</strong></td>
+                  <td class="z-dies">Wrong — 0.08 against Marvel's 0.31 at matched n and m. Nothing in the rule closes a triangle.</td>
+                  <td class="z-lives">Right, and then some — hubs make it ultra-small. We measured 2.63 against 2.67.</td>
+                  <td class="z-lives">Right — preferential attachment is the ingredient, and it is the only one of the three that has it.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The table has a clean reading: each model contains exactly the ingredient it was built to
+            contain and nothing else, and no model gets all three because no single mechanism produces
+            all three. Triangles need triadic closure or a spatial structure; short distances need
+            randomness; hubs need preference. Real networks have all three because real networks are
+            generated by more than one process at once.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e28">
+        <h2>2.8 — Compared to what, properly <span class="tag">🧠 Learn + 🚀 Builder</span></h2>
+        <div class="ex-body">
+          <p>
+            Items 4–7 are the backbone of <a href="week2.html">the week-2 post</a>; the figures and the
+            full discussion are there. Here is the working.
+          </p>
+
+          <h3>1. "Distance 2.7 versus random 2.8, so it is not a small world"</h3>
+          <p>
+            <strong>The flaw:</strong> a random network is not a baseline for "small world", it is the
+            <em>floor</em>. Randomness is the most efficient possible way to make paths short at a given
+            density, so matching it is the best any network can do — the claim reads a ceiling as a
+            failure. It also drops half the definition: small-world means short paths
+            <em>together with</em> high clustering, and the sentence never mentions clustering.
+          </p>
+          <p>
+            <strong>The null that fixes it:</strong> a ring lattice (Watts–Strogatz at q = 0) with the
+            same n and ⟨k⟩ — the structured extreme rather than the random one. In our own sweep, a
+            500-node lattice at ⟨k⟩ = 4 has ⟨d⟩ = 62.9. Marvel is at 2.67 with C = 0.31; the honest
+            statement is that it sits at random-network distances while holding ten times random-network
+            clustering, which is precisely what "small world" means.
+          </p>
+
+          <h3>2. "39% reciprocated versus 3% at random, so 13× chance"</h3>
+          <p>
+            <strong>The flaw:</strong> a random directed network has no hubs, and hubs manufacture
+            reciprocity for free. If a page has 106 incoming links, the chance that at least some of
+            them are answered is high for reasons that have nothing to do with editorial norms. The null
+            differs from Marvel in two ways at once (density <em>and</em> degree structure), so the ratio
+            cannot be attributed to either.
+          </p>
+          <p>
+            <strong>The better null:</strong> shuffle the directed edges while preserving every node's
+            in- <em>and</em> out-degree (<code>nx.directed_edge_swap</code>). We ran 100 replicates:
+          </p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Baseline</th><th class="num">Reciprocity</th><th class="num">Marvel ÷ baseline</th></tr></thead>
+              <tbody>
+                <tr><td>Real Marvel</td><td class="num">0.392</td><td class="num">—</td></tr>
+                <tr><td>Random directed G(n,m)</td><td class="num">0.0191 ± 0.0047</td><td class="num">20.6×</td></tr>
+                <tr><td>In/out-degree-preserving shuffle</td><td class="num">0.0653 ± 0.0070</td><td class="num">6.0×</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>Does the effect survive?</strong> Yes, and comfortably — z = +47 against the honest
+            null. But the hubs account for a real share of it: they lift the baseline from 1.9% to 6.5%,
+            more than tripling it. The headline number should be <strong>6×, not 13× or 20×</strong>, and
+            the residual is the interesting part: Wikipedia editors add mutual links, and no arrangement
+            of the existing degree sequence reproduces that.
+          </p>
+
+          <h3>3. "C is ten times ER, which proves the heavy tail causes it"</h3>
+          <p>
+            <strong>The flaw:</strong> the conclusion does not follow from the comparison, because ER
+            differs from Marvel in two ways simultaneously — it has the wrong degree distribution
+            <em>and</em> random wiring. A comparison that changes two things cannot attribute the result
+            to one of them. To claim the degree distribution is the cause you have to hold it fixed and
+            randomise everything else.
+          </p>
+          <p>
+            <strong>What happens when you do:</strong> under degree-preserving edge swaps, clustering on
+            the giant component falls from 0.320 only to 0.155 — not to 0.037. So the degree sequence
+            accounts for about <strong>40% of the gap</strong> to the ER baseline and the remaining 60%
+            is something else. The claim is not just unproven, it is roughly the wrong way round.
+          </p>
+
+          <h3>4. Configuration model versus G(n,m)</h3>
+          <p>
+            100 replicates each, on the 277-node giant component, real C = 0.3199.
+          </p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Null</th><th class="num">Mean C</th><th class="num">s.d.</th><th class="num">z</th><th class="num">Empirical p</th></tr></thead>
+              <tbody>
+                <tr><td>G(n,m)</td><td class="num">0.0369</td><td class="num">0.0035</td><td class="num">+81.6</td><td class="num">&lt; 0.01</td></tr>
+                <tr><td>Configuration model</td><td class="num">0.1093</td><td class="num">0.0082</td><td class="num">+25.8</td><td class="num">&lt; 0.01</td></tr>
+                <tr><td>Degree-preserving swaps</td><td class="num">0.1547</td><td class="num">0.0096</td><td class="num">+17.3</td><td class="num">&lt; 0.01</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>Links lost to the cleanup:</strong> simplifying the configuration model (dropping
+            self-loops and collapsing parallel links) costs on average <strong>103.5 links, 7.3%</strong>
+            of the 1,421. The real value is off every chart in every case — the highest C reached by any
+            of the 300 null networks was 0.178, against Marvel's 0.320.
+          </p>
+
+          <h3>5. The other road, and why the two disagree</h3>
+          <p>
+            Degree-preserving edge swaps, <code>nswap</code> = 10 × m = 14,210 per replicate. The degree
+            sequence was verified identical after every run — that is not optional, it is the only thing
+            that makes it the right null.
+          </p>
+          <p>
+            The configuration model lands at 0.109 and the swaps at 0.155, matching the numbers on the
+            course page. <strong>Where the difference comes from:</strong>
+          </p>
+          <figure>
+            <img src="../assets/week2/config_model_tax.png" alt="Fraction of links lost in the configuration model against original degree">
+            <figcaption>Share of each hero's links destroyed by the cleanup, against their degree.</figcaption>
+          </figure>
+          <p>
+            The lost links are not lost uniformly. A node with k stubs has of order k² chances to collide
+            with itself or to double up with a partner, so the deletion rate rises with degree:
+            <strong>Spider-Man loses 27.2%</strong> of his links, Hulk 19.8%, Wolverine 18.8%, Doctor
+            Strange 17.9% — while heroes of degree 1 lose 0.0% and degree 2 lose 0.3%.
+          </p>
+          <p>
+            So the configuration model is not testing the degree sequence we handed it. It quietly hands
+            back a flattened one with the hubs shaved down, and flatter degree sequences produce fewer
+            triangles, which is why its clustering baseline sits 42% below the swaps'. The edge-swap
+            number is the one to quote. If you use the configuration model on a heavy-tailed network
+            without reporting how many links you deleted and whose they were, your null is biased in the
+            direction that flatters your result.
+          </p>
+
+          <h3>6. Transitivity and the isolated nodes</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Quantity</th><th class="num">Real</th><th class="num">vs G(n,m)</th><th class="num">vs degree-preserving shuffle</th></tr></thead>
+              <tbody>
+                <tr><td>Transitivity</td><td class="num">0.182</td><td class="num">z = +62.3</td><td class="num">z = +16.2</td></tr>
+                <tr><td>Isolated nodes</td><td class="num">17</td><td class="num">z = +69.8</td><td class="num">z = 0 (frozen)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>Transitivity</strong> is extreme under both. It survives the degree-preserving null
+            at z = +16, so it is not a hub artefact — Marvel really does close triangles. What the degree
+            sequence buys you is the drop from z = +62 to z = +16: in value terms the shuffle baseline is
+            0.115 against G(n,m)'s 0.031 and Marvel's 0.182, so the degree sequence accounts for a bit
+            over half of the raw gap and genuine triadic closure for the rest. The meaning is
+            straightforward: heroes come in teams and eras, and Wikipedia articles about team-mates
+            reference each other.
+          </p>
+          <p>
+            <strong>Isolated nodes</strong> is the more interesting answer, because it is
+            <em>unremarkable under the shuffle in a way that means nothing at all</em>. The count of
+            degree-zero nodes is a function of the degree sequence alone, so a null that preserves the
+            degree sequence preserves it exactly: 17 in every one of the 100 shuffles, s.d. zero, z = 0
+            by construction. That is not evidence that the isolates are ordinary — it is evidence that we
+            asked a question the null cannot answer. Under G(n,m) the same count is z = +70 and wildly
+            extreme.
+          </p>
+          <p>
+            The lesson generalises: <strong>before reporting a z-score, check whether your null can move
+            the quantity at all.</strong> A null result from a statistic your null holds fixed is not a
+            null result. It is a category error, and it will silently pass every significance check you
+            put in front of it.
+          </p>
+
+          <h3>7. The paragraph the AI should have written</h3>
+          <div class="callout">
+            <span class="callout-label">Three sentences, right null, right conclusion</span>
+            <p>
+              The Marvel giant component has an average clustering coefficient of 0.320, against
+              0.155 ± 0.010 in 100 degree-preserving edge-swap randomisations of the same network — a
+              null that holds every hero's number of links exactly fixed and randomises only who links to
+              whom — giving z = +17.3 and an empirical p &lt; 0.01, the largest of the 100 shuffled values
+              being 0.178. The excess is therefore not an artefact of the heavy-tailed degree
+              distribution: comparing instead against a naive Erdős–Rényi baseline of 0.037 would have
+              inflated the z-score roughly fivefold (81.6 against 17.3), because the degree sequence
+              alone already accounts for about 40% of that gap.
+              Marvel's heroes are genuinely organised into overlapping teams and eras whose articles
+              cross-reference each other, and that organisation is what the remaining clustering measures.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e29">
+        <h2>2.9 — The friendship paradox <span class="tag">🧠 Learn + 🔬 Tool</span></h2>
+        <div class="ex-body">
+
+          <h3>1. Stating it precisely, and the algebra</h3>
+          <p>
+            The two averages being compared are: <strong>(i)</strong> the mean degree of a node chosen
+            uniformly at random, and <strong>(ii)</strong> the mean degree of a <em>neighbour</em>. They
+            are different because the second is not a uniform sample of nodes. A node of degree k
+            appears in k different neighbourhoods, so it has k chances to be sampled as somebody's
+            friend, while a node of degree 1 has one chance and an isolate has none at all. The
+            comparison is biased by construction, and the bias is always in the same direction.
+          </p>
+          <p>
+            Sampling a random <em>edge endpoint</em> draws node i with probability
+            k<sub>i</sub>/Σk<sub>j</sub>, so the mean degree of that draw is
+          </p>
+          <pre><code>E[k_neighbour] = Σ k_i · (k_i / Σ k_j) = ⟨k²⟩ / ⟨k⟩ = (⟨k⟩² + σ²) / ⟨k⟩ = ⟨k⟩ + σ²/⟨k⟩</code></pre>
+          <p>
+            The excess is <strong>σ²/⟨k⟩</strong> and nothing else. So the paradox is strongest in
+            scale-free networks because a power law with γ &lt; 3 has a divergent second moment — σ² is
+            not just large, it grows with n, so the gap grows without bound as the network gets bigger.
+            It is weakest in random networks because Poisson has σ² = ⟨k⟩ exactly, giving
+            E[k<sub>neighbour</sub>] = ⟨k⟩ + 1. Weakest, but <strong>never absent</strong>: the excess is
+            exactly one friend, and it can only vanish if σ² = 0, i.e. in a perfectly regular graph
+            where everyone has identical degree.
+          </p>
+
+          <h3>2. Simulating it</h3>
+          <figure>
+            <img src="../assets/week2/friendship_paradox.png" alt="Left: mean own degree versus mean friend degree across five networks. Right: the heroes most likely to be the more popular friend.">
+            <figcaption>
+              Left: the paradox in five networks. Grey is your own degree, blue is your random friend's,
+              pink dashes are the ⟨k⟩ + σ²/⟨k⟩ prediction. Right: the exact probability of each hero
+              being the answer, with "crowns" = how many heroes name them as their most popular friend.
+            </figcaption>
+          </figure>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th>Network</th><th class="num">Your degree</th><th class="num">Friend's degree</th><th class="num">Ratio</th><th class="num">⟨k⟩+σ²/⟨k⟩</th><th class="num">Friend ≥ you</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Marvel (real)</td><td class="num">10.03</td><td class="num">24.22</td><td class="num">2.4×</td><td class="num">22.08</td><td class="num">75%</td></tr>
+                <tr><td>Marvel, degree-preserving shuffle</td><td class="num">10.03</td><td class="num">23.74</td><td class="num">2.4×</td><td class="num">22.08</td><td class="num">76%</td></tr>
+                <tr><td>Marvel-sized random G(n,m)</td><td class="num">9.47</td><td class="num">10.40</td><td class="num">1.1×</td><td class="num">10.39</td><td class="num">63%</td></tr>
+                <tr><td>BA, n = 5,000</td><td class="num">2.00</td><td class="num">12.42</td><td class="num">6.2×</td><td class="num">9.63</td><td class="num">81%</td></tr>
+                <tr><td>BA-sized random G(n,m)</td><td class="num">2.31</td><td class="num">3.02</td><td class="num">1.3×</td><td class="num">3.02</td><td class="num">75%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The pattern is exactly what item 1 predicts: BA ×6.2, Marvel ×2.4, random ×1.1–1.3. Never
+            absent, never as strong as in a scale-free network.
+          </p>
+          <div class="callout warn">
+            <span class="callout-label">The discrepancy that is not an error</span>
+            <p>
+              In Marvel the measured friend degree is 24.22 but the formula gives 22.08. They are
+              different quantities. The formula is the mean degree at a <em>random edge endpoint</em>,
+              which is hub-weighted. The survey — pick a random hero, then a random friend <em>of
+              theirs</em> — weights every hero equally, so P(friend = w) = (1/N)Σ<sub>v~w</sub> 1/k<sub>v</sub>,
+              which is not proportional to k<sub>w</sub>. The two agree in the random network (10.40 vs
+              10.39) and diverge in Marvel and BA, and the reason they diverge is
+              <strong>disassortativity</strong>: in both of those, low-degree nodes are attached to hubs
+              at a higher rate than an edge-endpoint sample implies, so the equally-weighted survey lands
+              higher. Every textbook statement of the paradox we could find uses the formula and the
+              survey interchangeably; on a disassortative network they differ by 10%.
+            </p>
+          </div>
+
+          <h3>3. Null-modelling it</h3>
+          <p>
+            Run the identical measurement on a degree-preserving shuffle of Marvel and the effect is
+            untouched — 23.74 against 24.22, 76% against 75%.
+          </p>
+          <p>
+            <strong>This null cannot kill it, and that is the finding.</strong> The paradox is a theorem
+            about the degree <em>distribution</em>: the excess is σ²/⟨k⟩, which is computed from the
+            degree sequence alone. Any null that preserves the degree sequence preserves σ², ⟨k⟩ and
+            therefore the paradox, exactly. Rewiring cannot help.
+          </p>
+          <p>
+            This makes the paradox the mirror image of clustering, and the pair of them is a nice
+            demonstration of what a null model is for. Clustering is <em>destroyed</em> by a shuffle, so
+            it is a property of the wiring. The paradox is <em>immune</em> to a shuffle, so it is a
+            property of the degree sequence. Same test, opposite answers, and the answer tells you which
+            layer of the network the phenomenon lives on.
+          </p>
+          <p>
+            <strong>What lies beyond the degree sequence?</strong> Reasoning first:
+          </p>
+          <ul>
+            <li>
+              <strong>Assortativity should matter, and in which direction is predictable.</strong> If
+              hubs preferentially link to hubs (assortative), then the typical low-degree node is
+              attached to other low-degree nodes and the paradox weakens for most of the population. If
+              hubs link to nobodies (disassortative), almost everyone is attached to somebody much
+              bigger and the paradox strengthens. Marvel is disassortative at −0.098, so we predicted
+              the survey average would exceed the edge-endpoint formula — and it does, 24.22 against
+              22.08. The shuffle, which is only mildly disassortative on its own (−0.120), gives 23.74,
+              slightly lower. Prediction confirmed.
+            </li>
+            <li>
+              <strong>Clustering should weaken it slightly.</strong> Triangles mean your friends are each
+              other's friends, so your neighbourhood is more internally similar and there is less room
+              for a friend to be drawn from a much higher stratum. We would expect a small effect, well
+              below the degree-sequence term.
+            </li>
+            <li>
+              <strong>Communities should weaken it</strong> for the same reason at a larger scale: if you
+              only ever sample friends from your own group, your comparison class is the group rather
+              than the network, and the biggest hubs are out of reach.
+            </li>
+          </ul>
+          <p>
+            We tested the first one, which is the one the data can speak to: the gap between the
+            equally-weighted survey and the edge-endpoint formula is +9.7% in Marvel (assortativity
+            −0.098), +29% in the BA network (−0.080, and a far heavier tail), and +0.1% in the
+            Marvel-sized random network (−0.009). The gap tracks disassortativity, as predicted.
+            Assortativity is a real third ingredient, and the standard statement of the paradox does not
+            mention it.
+          </p>
+
+          <h3>4. Grading an explanation</h3>
+          <p>
+            As with 2.6.3, we are not posting a chatbot transcript we cannot re-run. The rubric, which
+            our own simulations gave us:
+          </p>
+          <ol>
+            <li>Does it name the mechanism as a <strong>sampling bias</strong> — high-degree nodes appear in more neighbourhoods — rather than something mystical about popularity?</li>
+            <li>Does it mention <strong>variance</strong>? The excess is exactly σ²/⟨k⟩. An explanation without a variance term cannot say why the paradox is stronger in some networks than others.</li>
+            <li>Does it claim <strong>hubs are necessary</strong>? They are not. Our Marvel-sized random network has no hubs at all and still shows the paradox at ×1.1 with 63% of heroes beaten. The paradox needs σ² &gt; 0, not a power law. This is the overclaim we would expect most often.</li>
+            <li>Does it distinguish "your friends have more friends <em>on average</em>" from "<em>most</em> of your friends have more friends"? Those are different statements with different truth values.</li>
+            <li>Does it say <strong>which</strong> average — random edge endpoint, or random person's random friend? Almost nothing does, and on Marvel the two differ by 10%.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="ex" id="e210">
+        <h2>2.10 — Ship an explorable <span class="tag">🚀 stretch</span></h2>
+        <div class="ex-body">
+          <p>
+            We built one: <strong>the Shuffle Machine</strong>, embedded in
+            <a href="week2.html#shuffle-machine">the week-2 post</a>. It holds the real 277-hero giant
+            component in the browser and runs degree-preserving double edge swaps live — 14,210 swaps per
+            replicate — so you can watch a null distribution assemble itself and see the z-score settle
+            down as the sample grows.
+          </p>
+          <p>
+            The claim it makes grabbable is the one none of this week's widgets shows: that
+            <strong>some statistics cannot move under a degree-preserving null at all</strong>. The
+            statistic menu deliberately mixes three kinds — quantities that die (transitivity,
+            triangles), quantities that survive (assortativity, links among the top 20 hubs), and one
+            that is frozen by construction (Spider-Man's share of all links, which reports a standard
+            deviation of exactly zero and refuses to give you a z-score). Switching between them makes
+            the difference between "not significant" and "not even possible" something you can see rather
+            than something you have to be told.
+          </p>
+          <p>
+            No dependencies, no build step, ~350 lines:
+            <code>docs/assets/week2/shuffle-machine.js</code>. It also re-verifies the degree sequence
+            after the first shuffle and says so in the status line, because a shuffle widget that
+            silently broke its own invariant would be worse than no widget.
+          </p>
+        </div>
+      </section>
+
+      <div class="post-nav">
+        <a href="week2.html">→ The week-2 write-up: The shuffle test</a>
+        <a href="week1.html">← Week 1: Fame, curation, and the islands</a>
+        <a href="../index.html">All posts</a>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <a href="../index.html">Home</a>
+      ·
+      <a href="https://github.com/Benyla/02805_SGI" target="_blank" rel="noopener">GitHub repo</a>
+      ·
+      <a href="https://sunelehmann.com/socialgraphs2026-web/weeks/week2.html" target="_blank" rel="noopener">Course Week 2</a>
+    </p>
+  </footer>
+</body>
+</html>
