@@ -1,24 +1,23 @@
-# 02805 Network Stories
+# 02805 Social Graphs and Interactions
 
-Our group's weekly data stories from the Marvel Wikipedia superhero network — built for [02805 Social Graphs and Interactions](https://sunelehmann.com/socialgraphs2026-web/).
+Course work for [02805 Social Graphs and Interactions](https://sunelehmann.com/socialgraphs2026-web/). The repo has two separate parts:
+
+| Folder | What |
+|---|---|
+| [`project/`](project/) | Final project: *Many faces, few hands*, about ghost artists on Spotify. See [`project/README.md`](project/README.md). |
+| [`weekly/`](weekly/) | Weekly exercises (Marvel Wikipedia superhero network). |
+| [`docs/`](docs/) | GitHub Pages site with the weekly data stories. It stays at the repo root because Pages only serves from `/` or `/docs`. |
 
 ## Site
 
-After enabling GitHub Pages (Settings → Pages → branch `main`, folder `/docs`), the site lives at:
+https://benyla.github.io/02805_SGI/ (Settings → Pages → branch `main`, folder `/docs`).
 
-**https://benyla.github.io/02805_SGI/**
-
-## Re-run Week 1 analysis
+## Weekly exercises
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python analysis/week1_explore.py
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r weekly/requirements.txt
+python weekly/analysis/week1_explore.py   # writes figures to docs/assets/week1/
 ```
 
-Figures are written to `docs/assets/week1/`.
-
-## Data
-
-Frozen week-1 snapshot in [`DATA/`](DATA/): 303 Marvel superheroes, 1,784 directed wiki-links.
+The frozen week 1 snapshot is in [`weekly/data/`](weekly/data/): 303 Marvel superheroes and 1,784 directed wiki links.
