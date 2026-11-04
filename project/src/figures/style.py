@@ -22,12 +22,15 @@ SEQ_CMAP = "Blues"  # sequential = one hue, light -> dark
 def apply() -> None:
     mpl.rcParams.update({
         "figure.dpi": 150,
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Helvetica", "Arial", "DejaVu Sans"],
+        "savefig.dpi": 400,
         "savefig.bbox": "tight",
-        "font.size": 8,
-        "axes.titlesize": 9,
+        "font.size": 7,
+        "axes.titlesize": 7.5,
         "axes.titleweight": "bold",
         "axes.titlelocation": "left",
-        "axes.labelsize": 8,
+        "axes.labelsize": 6.5,
         "axes.labelcolor": TEXT_2,
         "axes.edgecolor": NEUTRAL,
         "axes.linewidth": 0.6,
@@ -39,10 +42,10 @@ def apply() -> None:
         "axes.axisbelow": True,
         "xtick.color": TEXT_2,
         "ytick.color": TEXT_2,
-        "xtick.labelsize": 7,
-        "ytick.labelsize": 7,
+        "xtick.labelsize": 6,
+        "ytick.labelsize": 6,
         "legend.frameon": False,
-        "legend.fontsize": 7,
+        "legend.fontsize": 6,
         "lines.linewidth": 2,
         "pdf.fonttype": 42,
     })
@@ -54,3 +57,7 @@ def save(fig: plt.Figure, name: str) -> None:
         fig.savefig(FIGURES / f"{name}.{ext}")
     plt.close(fig)
     print(f"  wrote figures/{name}.pdf/.png")
+
+# Main dichotomy of the paper (validated pair: slots 1 and 2)
+GHOST = "#eb6834"
+REAL = "#2a78d6"
