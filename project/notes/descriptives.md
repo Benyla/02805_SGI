@@ -24,7 +24,7 @@ The context.md medians are over playlist slots using each track's primary artist
 
 | | functional | genre |
 |---|---|---|
-| Deezer match rate (attempted tracks only, see below) | 70.6% | 94.0% |
+| Deezer match rate | 71.6% | 93.8% |
 | Verified artists | 18.1% | 94.3% |
 | Artists with a bio | 46.5% | 93.1% |
 | Median track duration (s) | 159 | 200 |
@@ -32,13 +32,13 @@ The context.md medians are over playlist slots using each track's primary artist
 | Track's Source is the artist's own name | 49.5% | 11.5% |
 | Artist names in the track's Source house (mean / median / p90) | 40.4 / 1 / 175 | 2.8 / 2 / 5 |
 | Same, (P) line owner | 33.4 / 1 / 162 | 2.2 / 1 / 4 |
-| Same, ISRC registrant (Deezer-matched tracks only) | 78.8 / 87 / 154 | 10.3 / 4 / 32 |
+| Same, ISRC registrant (Deezer-matched tracks only) | 216.3 / 232 / 409 | 11.7 / 5 / 35 |
 
 House size is bimodal on functional playlists: about half the tracks name the alias itself as Source (a one-name house), the rest sit in houses with dozens to hundreds of names. Report the tail (mean, p90, CCDF), not the median.
 
-## Data problem: Deezer enrichment is incomplete
+## Deezer coverage
 
-Deezer matching was attempted for 2,630 of 8,093 tracks: 28% of functional tracks and 98% of genre tracks. 28 playlists have under 10% coverage, while the rest are near 100%, so the run stopped partway through the playlist list. Among attempted tracks the match rate is 74.7% (the '76%' in context.md). Until it is re-run, the Deezer match rate and ISRC registrant are **not comparable between groups**: restrict them to attempted tracks, or finish the enrichment (public Deezer API, no Spotify calls).
+Deezer matching was attempted for 8,093 of 8,093 tracks (100% of functional, 100% of genre; 0 playlists under 10% coverage). Match rate: 72.9% overall, 71.6% functional vs 93.8% genre. (Data v2, 2026-11-04 19:23, re-ran the enrichment that had stopped partway in v1.)
 
 ## Playlist overlap (Jaccard of artist sets)
 
@@ -58,7 +58,7 @@ Top 10 by distinct artist names (full tables in `data/processed/descriptives_top
 
 **(P) line owner:** Overtone Studios (281 names / 373 tracks), Chill Palm (162 names / 423 tracks), ScoreAScore (117 names / 198 tracks), Deutsche Grammophon GmbH, Berlin (78 names / 47 tracks), Universal Music Operations Limited (66 names / 56 tracks), Songs of Score A Score (64 names / 109 tracks), Chill Caterpillar (53 names / 73 tracks), Chill Lemon (47 names / 163 tracks), Sony Music Entertainment Germany GmbH (38 names / 21 tracks), Azure Noon (36 names / 95 tracks).
 
-**ISRC registrant (Deezer-matched only):** 5W3 (154 names / 251 tracks), 69Z (141 names / 182 tracks), AKB (98 names / 189 tracks), 5IB (93 names / 115 tracks), 69N (87 names / 134 tracks), 7DX (59 names / 82 tracks), UM7 (55 names / 49 tracks), XGF (45 names / 87 tracks), 4RG (34 names / 39 tracks), 66H (33 names / 52 tracks).
+**ISRC registrant (Deezer-matched):** 69Z (409 names / 680 tracks), 5W3 (380 names / 673 tracks), 7DX (264 names / 482 tracks), AKB (248 names / 555 tracks), 69N (232 names / 432 tracks), 5IB (232 names / 272 tracks), XGF (219 names / 456 tracks), 4RG (196 names / 312 tracks), 66H (122 names / 186 tracks), 6RU (98 names / 114 tracks).
 
 Caveat: classical labels (DG, Decca, Warner Classics) rank high because classical tracks list composer and performers as artists, so they have more names than tracks. Ghost-style houses have fewer names than tracks but a large number of single-name aliases. Phase 3 should count primary-artist names, or use names per track, to separate the two.
 

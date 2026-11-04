@@ -190,7 +190,7 @@ def main() -> None:
     houses = {
         "Credit Source": house_table(T, "source"),
         "(P) line owner": house_table(T, "pline_owner"),
-        "ISRC registrant (Deezer-matched only)": house_table(T, "isrc_registrant"),
+        "ISRC registrant (Deezer-matched)": house_table(T, "isrc_registrant"),
     }
     fig_houses(houses)
     PROCESSED.mkdir(parents=True, exist_ok=True)
@@ -262,7 +262,7 @@ def main() -> None:
         "",
         "| | functional | genre |",
         "|---|---|---|",
-        f"| Deezer match rate (attempted tracks only, see below) | {deezer['functional']:.1%} | {deezer['genre']:.1%} |",
+        f"| Deezer match rate | {deezer['functional']:.1%} | {deezer['genre']:.1%} |",
         f"| Verified artists | {verified['functional']:.1%} | {verified['genre']:.1%} |",
         f"| Artists with a bio | {has_bio['functional']:.1%} | {has_bio['genre']:.1%} |",
         f"| Median track duration (s) | {dur['functional']:.0f} | {dur['genre']:.0f} |",
@@ -275,22 +275,20 @@ def main() -> None:
         f"| Same, (P) line owner | {house_size('functional', 'pline_owner', houses['(P) line owner'])} | "
         f"{house_size('genre', 'pline_owner', houses['(P) line owner'])} |",
         f"| Same, ISRC registrant (Deezer-matched tracks only) | "
-        f"{house_size('functional', 'isrc_registrant', houses['ISRC registrant (Deezer-matched only)'])} | "
-        f"{house_size('genre', 'isrc_registrant', houses['ISRC registrant (Deezer-matched only)'])} |",
+        f"{house_size('functional', 'isrc_registrant', houses['ISRC registrant (Deezer-matched)'])} | "
+        f"{house_size('genre', 'isrc_registrant', houses['ISRC registrant (Deezer-matched)'])} |",
         "",
         "House size is bimodal on functional playlists: about half the tracks name the alias itself "
         "as Source (a one-name house), the rest sit in houses with dozens to hundreds of names. "
         "Report the tail (mean, p90, CCDF), not the median.",
         "",
-        "## Data problem: Deezer enrichment is incomplete",
+        "## Deezer coverage",
         "",
-        f"Deezer matching was attempted for {T.deezer_attempted.sum():,} of {len(T):,} tracks: "
-        f"{dz_att['functional']:.0%} of functional tracks and {dz_att['genre']:.0%} of genre tracks. "
-        f"{n_pl_zero} playlists have under 10% coverage, while the rest are near 100%, so the run "
-        "stopped partway through the playlist list. Among attempted tracks the match rate is "
-        f"{T.deezer_match.mean():.1%} (the '76%' in context.md). Until it is re-run, the Deezer match "
-        "rate and ISRC registrant are **not comparable between groups**: restrict them to attempted "
-        "tracks, or finish the enrichment (public Deezer API, no Spotify calls).",
+        f"Deezer matching was attempted for {T.deezer_attempted.sum():,} of {len(T):,} tracks "
+        f"({dz_att['functional']:.0%} of functional, {dz_att['genre']:.0%} of genre; "
+        f"{n_pl_zero} playlists under 10% coverage). Match rate: {T.deezer_match.mean():.1%} overall, "
+        f"{deezer['functional']:.1%} functional vs {deezer['genre']:.1%} genre. "
+        "(Data v2, 2026-11-04 19:23, re-ran the enrichment that had stopped partway in v1.)",
         "",
         "## Playlist overlap (Jaccard of artist sets)",
         "",
