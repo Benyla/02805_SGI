@@ -1,0 +1,96 @@
+{
+ "auc_name": {
+  "auc": 0.5677423915307025,
+  "null_mean": 0.5007689598992385,
+  "null_sd": 0.012551926182105518,
+  "n": 4530,
+  "n_ghost": 2653
+ },
+ "auc_titles": {
+  "auc": 0.598277580431357,
+  "null_mean": 0.5002325701184474,
+  "null_sd": 0.011918470543338753,
+  "n": 4530,
+  "n_ghost": 2653
+ },
+ "auc_bio": {
+  "auc": 0.8678944239686125,
+  "null_mean": 0.5029399595767446,
+  "null_sd": 0.018722099197610163,
+  "n": 1944,
+  "n_ghost": 650
+ },
+ "bio_presence": {
+  "ghost": 0.24500565397663024,
+  "real": 0.6893979754928077
+ },
+ "bio_entities_per_100_tokens": {
+  "False": {
+   "PERSON": 2.843,
+   "PLACE": 1.421,
+   "DATE": 2.088,
+   "ORG": 2.195
+  },
+  "True": {
+   "PERSON": 0.774,
+   "PLACE": 0.76,
+   "DATE": 0.622,
+   "ORG": 0.622
+  }
+ },
+ "bio_any_entity": {
+  "False": 0.857032457496136,
+  "True": 0.4338461538461538
+ },
+ "bio_median_tokens": {
+  "False": 133.0,
+  "True": 32.0
+ },
+ "bio_words_ghost": [
+  "calm",
+  "gentle",
+  "quiet",
+  "stillness",
+  "creates",
+  "soft",
+  "relaxation",
+  "slow",
+  "space",
+  "designed",
+  "ambient",
+  "textures",
+  "soundscapes",
+  "deep",
+  "focus"
+ ],
+ "bio_words_real": [
+  "album",
+  "released",
+  "orchestra",
+  "year",
+  "works",
+  "including",
+  "recording",
+  "label",
+  "albums",
+  "conductor",
+  "recordings",
+  "debut",
+  "symphony",
+  "later",
+  "performed"
+ ],
+ "person_like_name": {
+  "ghost": 0.5858433734939759,
+  "real_functional": 0.5769845498135322,
+  "genre": 0.48884381338742394
+ },
+ "title_reused_by_other_name": {
+  "False": 0.11954165376277485,
+  "True": 0.14370888157894737
+ },
+ "title_words_mean": {
+  "False": 2.4437906472592132,
+  "True": 1.9755345394736843
+ }
+}

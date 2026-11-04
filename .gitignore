@@ -24,3 +24,5 @@ project/paper/*.fdb_latexmk
 project/paper/*.out
 project/paper/*.bbl
 project/paper/*.blg
+project/data/processed/*.npy
+project/data/processed/*.txt

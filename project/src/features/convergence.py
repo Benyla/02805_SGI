@@ -26,8 +26,8 @@ CLASSICAL_MAJORS = {"Deutsche Grammophon": "Deutsche Grammophon", "Decca": "Decc
                     "Sony Classical": "Sony Classical", "Warner Classics": "Warner Classics"}
 
 
-def fit_mixture(df: pd.DataFrame) -> pd.Series:
-    X = df[S].fillna(df[S].median()).values
+def fit_mixture(df: pd.DataFrame, cols: list[str] = S) -> pd.Series:
+    X = df[cols].fillna(df[cols].median()).values
     gm = GaussianMixture(2, random_state=SEED, n_init=10).fit(X)
     ghost_comp = int(np.argmax(gm.means_.sum(axis=1)))
     return pd.Series(gm.predict_proba(X)[:, ghost_comp], index=df.index, name="p_ghost")
@@ -92,6 +92,10 @@ def main() -> None:
     df = pd.read_parquet(path)
     df["p_ghost"] = fit_mixture(df)
     df["ghost"] = df.p_ghost > 0.5
+    # label without any production information: used wherever the claim is about houses,
+    # so "ghosts sit in few houses" is not true by construction
+    df["p_ghost_noprod"] = fit_mixture(df, ["identity_z", "demand_z"])
+    df["ghost_noprod"] = df.p_ghost_noprod > 0.5
     df.to_parquet(path)
 
     ct = corr_table(df)

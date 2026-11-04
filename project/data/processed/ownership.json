@@ -1,0 +1,41 @@
+{
+ "n_houses": 486,
+ "n_names_with_registrant": 3719,
+ "ghost_names": 2656,
+ "ghost_names_with_registrant": 1983,
+ "ghost_distinct_houses": 10,
+ "top8_houses": [
+  "SE69Z",
+  "SE5W3",
+  "SE7DX",
+  "SEXGF",
+  "QZAKB",
+  "SE4RG",
+  "SE69N",
+  "SE5IB"
+ ],
+ "top8_share_of_ghost_slots": 0.9432343234323433,
+ "top8_swedish": 7,
+ "se_share_ghost_names": 0.9132627332324761,
+ "se_share_real_names": 0.20276497695852536,
+ "median_house_ghost": 248.0,
+ "median_house_real": 9.0,
+ "functional_slot_ghost_share": 0.6468588842006564,
+ "genre_slot_ghost_share": 0.0,
+ "rho_ghostshare_followers": 0.29223623982387453,
+ "rho_p": 0.051418214821168116,
+ "plays_functional_ghost": 30436696713,
+ "plays_functional_real": 16397258540,
+ "self_source_share_ghost": 0.6209495101733233,
+ "self_source_share_real_functional": 0.14346666666666666,
+ "self_source_house_median": 232.0,
+ "noprod": {
+  "ghost_names": 3144,
+  "with_registrant": 2333,
+  "agreement_with_full_label": 0.8415605095541401,
+  "distinct_houses": 77,
+  "top8_share_names": 0.8058294042006001,
+  "top10_share_names": 0.8958422631804543,
+  "se_share": 0.8414059151307329
+ }
+}

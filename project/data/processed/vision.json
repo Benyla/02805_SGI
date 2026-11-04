@@ -1,0 +1,20 @@
+{
+ "auc_cover": {
+  "auc": 0.7148995400152585,
+  "null_mean": 0.5014146205027399,
+  "null_sd": 0.014884541161223466,
+  "n": 4072,
+  "n_ghost": 2617
+ },
+ "cover_nn_same_house": {
+  "observed": 0.15307195433378398,
+  "null_mean": 0.06261228781733513,
+  "null_sd": 0.0030038676934787557,
+  "n_covers": 6657
+ },
+ "literalness_median": {
+  "False": 0.2450914978981018,
+  "True": 0.28876328468322754
+ },
+ "phash_pairs_across_names": 25
+}
