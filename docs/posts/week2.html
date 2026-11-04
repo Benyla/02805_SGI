@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 2 · The shuffle test — 02805 Network Stories</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>02805 Network Stories</h1>
+    <p class="tagline">Week 2 post</p>
+  </header>
+
+  <main class="wide">
+    <a class="back-link" href="../index.html">← Back to home</a>
+
+    <header class="post-header">
+      <h1>The shuffle test</h1>
+      <p class="meta">Week 2 · Models &amp; null models · Marvel Wikipedia snapshot (2026-08-26)</p>
+    </header>
+
+    <article>
+      <p>
+        Last week we wrote that the Marvel network has a clustering coefficient of 0.31, that 39% of
+        its links are reciprocated, and that 17 heroes are completely invisible. We reported those
+        numbers as if they meant something.
+      </p>
+      <p>
+        They don't — not on their own. A number about a network is only interesting relative to a
+        world where the interesting thing <em>didn't</em> happen. So this week we built that world,
+        one hundred times over, and put every number we had on trial: keep each hero's popularity
+        exactly as it is, rewire everything else at random, and see which of our findings are still
+        standing afterwards.
+      </p>
+      <p>
+        Seven of the ten died — two of them only barely. One survived. And two of them, it turns out,
+        could never have died in the first place, which is its own kind of lesson.
+      </p>
+
+      <div class="tldr">
+        <h3>What we found</h3>
+        <ol>
+          <li>
+            <strong>Triangles are the real structure.</strong> Marvel's clustering (0.32 on the giant
+            component) sits <strong>17 standard deviations</strong> above a degree-preserving shuffle.
+            Nothing about who is famous explains it.
+          </li>
+          <li>
+            <strong>Several of our week-1 "findings" were facts about the degree sequence.</strong> The
+            diameter is exactly what you get by accident once everyone's degree is fixed, and the
+            assortativity is within a whisker of it. The 17 isolates are not even a result — the shuffle
+            <em>cannot move them.</em>
+          </li>
+          <li>
+            <strong>The famous "13× more reciprocity than chance" style of claim is wrong twice.</strong>
+            Against a random directed graph it is 20.6×. Against a null that keeps everyone's in- and
+            out-degree, it is 6.0×. Same data, same effect, three different headline numbers.
+          </li>
+          <li>
+            <strong>The friendship paradox has exactly two kings.</strong> 87% of Marvel heroes are less
+            popular than the average of their friends, and only <em>two</em> characters in the entire
+            network are never out-popularised by anyone they link to: Spider-Man — and an obscure hero
+            named Radian, whose entire social world is eight other people. One king per island.
+          </li>
+          <li>
+            <strong>We cannot tell you the Marvel degree distribution is a power law.</strong> We fit
+            one (γ = 2.62). We also fit a log-normal. The likelihood-ratio test cannot separate them
+            (p = 0.43), and we show below why 303 nodes were never going to be enough.
+          </li>
+        </ol>
+      </div>
+
+      <h2>1. The lineup</h2>
+
+      <p>
+        Here is the whole idea in one picture. We took ten numbers you can compute about the Marvel
+        network and asked each of them the same question twice.
+      </p>
+      <p>
+        The easy question (green): <em>is this bigger than in a random graph with the same number of
+        heroes and the same number of links?</em> That null throws away everything — it does not know
+        that Spider-Man exists.
+      </p>
+      <p>
+        The honest question (blue): <em>is this bigger than in a network where every hero keeps their
+        exact degree and nothing else is preserved?</em> We build that by taking the real network and
+        applying 14,340 degree-preserving double edge swaps — ten per link: pick two links, cross them
+        over, keep the count at every node the same — one hundred separate times.
+      </p>
+
+      <figure>
+        <img src="../assets/week2/shuffle_battery.png" alt="Horizontal bar chart of z-scores for ten Marvel network statistics against two null models">
+        <figcaption>
+          Ten statistics, two nulls, 100 shuffles each. The x-axis is a symlog scale, so the grey band
+          (|z| &lt; 2, i.e. "indistinguishable from chance") stays visible next to z-scores in the
+          hundreds. Green bars are what you get when you let the null forget who the hubs are; blue
+          bars are what is left when it remembers.
+        </figcaption>
+      </figure>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Statistic</th>
+              <th class="num">Real Marvel</th>
+              <th class="num">Degree-preserving shuffle</th>
+              <th class="num">z</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Giant component size</td><td class="num">277</td><td class="num">285.96 ± 0.28</td><td class="num">−31.8</td><td class="z-dies">dies</td></tr>
+            <tr><td>Average clustering <em>C</em></td><td class="num">0.3075</td><td class="num">0.1431 ± 0.0065</td><td class="num">+25.4</td><td class="z-dies">dies</td></tr>
+            <tr><td>Transitivity</td><td class="num">0.1825</td><td class="num">0.1148 ± 0.0042</td><td class="num">+16.2</td><td class="z-dies">dies</td></tr>
+            <tr><td>Triangles</td><td class="num">1,839</td><td class="num">1,157 ± 42</td><td class="num">+16.2</td><td class="z-dies">dies</td></tr>
+            <tr><td>Islands (components)</td><td class="num">19</td><td class="num">18.02 ± 0.14</td><td class="num">+7.0</td><td class="z-dies">dies</td></tr>
+            <tr><td>Mean distance (giant comp.)</td><td class="num">2.674</td><td class="num">2.632 ± 0.012</td><td class="num">+3.5</td><td class="z-dies">dies (barely)</td></tr>
+            <tr><td>Degree assortativity</td><td class="num">−0.098</td><td class="num">−0.120 ± 0.011</td><td class="num">+2.2</td><td class="z-dies">dies (barely)</td></tr>
+            <tr><td>Diameter (giant comp.)</td><td class="num">6</td><td class="num">5.47 ± 0.54</td><td class="num">+1.0</td><td class="z-lives">survives</td></tr>
+            <tr><td>Isolated heroes</td><td class="num">17</td><td class="num">17 ± 0</td><td class="num">0</td><td class="z-frozen">frozen by construction</td></tr>
+            <tr><td>Top hub's share of links</td><td class="num">0.0739</td><td class="num">0.0739 ± 0</td><td class="num">0</td><td class="z-frozen">frozen by construction</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>What the survivors mean</h3>
+      <p>
+        <strong>The diameter survives (z = +1.0).</strong> Six hops from one end of the Marvel universe
+        to the other is not a fact about Marvel. It is a fact about having 277 nodes, 1,421 links, and
+        one enormous hub — any wiring with that degree sequence gives you roughly six. If we had written
+        "the Marvel universe is remarkably compact" last week, this is the sentence that would have been
+        wrong.
+      </p>
+      <p>
+        <strong>The frozen two are worth more than they look.</strong> "17 isolated heroes" and
+        "Spider-Man owns 7.4% of all links" are numbers a degree-preserving shuffle can never change,
+        because they are <em>functions of the degree sequence alone</em>. Their z-score against the
+        shuffle is exactly zero and always will be. That is not a null result — it is a statement that
+        we asked the wrong null. Both are wildly extreme against G(n,m) (z = +70 and +52), and the
+        interesting question about them is not "is this random?" but "what process produced a degree
+        sequence like that?" We come back to that in section 5.
+      </p>
+      <p>
+        <strong>The giant component is a nice surprise in the other direction.</strong> The real giant
+        component is <em>smaller</em> than a shuffle of itself, by 32 standard deviations. Marvel's 9-node
+        Strikeforce: Morituri island — Radian, Vyking, Scaredycat, Blackthorn and friends — has enough
+        internal links that a random rewiring would almost always splice it into the mainland. It stays
+        separate because those nine characters link to each other and to no one else. That is real,
+        interpretable structure: a corner of comics history that never got cross-referenced.
+      </p>
+
+      <h2>2. Run it yourself</h2>
+      <p>
+        Reading someone else's permutation test is not the same as watching a null distribution appear.
+        So here is the machine. It holds the actual 277-hero giant component in your browser, and every
+        time you press the button it runs 25 fresh shuffles — 14,210 degree-preserving edge swaps each —
+        and drops the resulting statistic into the histogram.
+      </p>
+      <p>
+        Try <em>Links among the top 20 hubs</em> and <em>Spider-Man's share of all links</em> back to
+        back. The first wanders a little every time you press the button and lands close to the real
+        value — 87 real against about 80 ± 4 shuffled, so the hubs are <em>not</em> unusually wired to
+        each other once you know how big they are. The second cannot move at all, ever. The difference
+        between "not significant" and "not even possible" is the whole reason to think about your null.
+      </p>
+      <p class="sm-sub">
+        (The machine works on the 277-node giant component; the battery in section 1 uses all 303 heroes,
+        so their numbers differ a little. Everything else is the same procedure.)
+      </p>
+
+      <div class="explorable" id="shuffle-machine">
+        <h3>The Shuffle Machine</h3>
+        <p class="sm-sub">
+          277 heroes · 1,421 links · degree-preserving double edge swaps, computed live in this page
+        </p>
+        <div class="sm-controls">
+          <select data-role="stat" aria-label="Statistic to test"></select>
+          <button type="button" data-role="run">Run 25 more shuffles</button>
+          <button type="button" data-role="reset">Reset</button>
+        </div>
+        <p class="sm-blurb" data-role="blurb"></p>
+        <div class="sm-body">
+          <canvas data-role="canvas" aria-label="Histogram of the shuffled null distribution"></canvas>
+          <div class="sm-readout" data-role="readout"></div>
+        </div>
+        <p class="sm-status" data-role="status"></p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">If the widget is blank</span>
+        <p>
+          It needs JavaScript and the data file next to it; everything below stands on its own without it.
+          The same numbers, computed in Python, are in
+          <code>analysis/week2_results_nulls.json</code>.
+        </p>
+      </div>
+
+      <h2>3. Two roads to the same null, and they do not agree</h2>
+
+      <p>
+        There are two standard ways to build "the same degrees, everything else random". You can throw
+        the network away and rebuild it from the degree sequence (the configuration model), or you can
+        keep the network and shuffle its links in place (double edge swaps). They are supposed to sample
+        the same thing. They do not.
+      </p>
+
+      <figure>
+        <img src="../assets/week2/clustering_nulls.png" alt="Histograms of average clustering under three null models, with the real Marvel value marked">
+        <figcaption>
+          Average clustering on the giant component under three nulls, 100 draws each. Real Marvel is
+          0.320. G(n,m) says 0.037 (z = +82). The configuration model says 0.109 (z = +26). Edge swaps
+          say 0.155 (z = +17). Right panel: the two degree-preserving nulls do not overlap at all.
+        </figcaption>
+      </figure>
+
+      <p>
+        The gap is 0.109 versus 0.155 — a 42% difference between two methods that are described in the
+        same paragraph of every textbook. It comes from the cleanup step. The configuration model
+        produces self-loops and duplicate links, and the standard fix is to delete them. On Marvel that
+        costs 103 links, 7.3% of the network. The question is <em>whose</em> links.
+      </p>
+
+      <figure>
+        <img src="../assets/week2/config_model_tax.png" alt="Fraction of links lost in the configuration model, plotted against a hero's original degree">
+        <figcaption>
+          Share of each hero's links destroyed by the configuration model's cleanup, against their real
+          degree. A degree-1 hero loses nothing. Spider-Man loses 27% of his.
+        </figcaption>
+      </figure>
+
+      <p>
+        There it is. A node with <em>k</em> stubs has roughly <em>k</em>² chances to collide with itself
+        or double up, so the tax is quadratic in degree and lands almost entirely on the hubs. Spider-Man
+        goes into the configuration model with 106 links and comes out with about 77. Hulk loses 20%,
+        Wolverine 19%, Doctor Strange 18% — while every hero of degree 1 loses exactly nothing.
+      </p>
+      <p>
+        So the configuration model is not testing the degree sequence we handed it. It is testing a
+        flattened version of it, with the hubs shaved down, and flatter degree sequences make fewer
+        triangles. The edge-swap number, 0.155, is the one to quote. If you use the configuration model
+        on a heavy-tailed network without reporting how many links you deleted and from whom, your null
+        is quietly biased — in the direction that makes your result look better.
+      </p>
+
+      <h2>4. The reciprocity claim, and how to be wrong in two directions</h2>
+
+      <p>
+        39% of Marvel's 1,784 directed links are answered: if Spider-Man's page links to Venom's, there
+        is a 39% chance Venom's page links back. Set against a random directed network of the same
+        density, where reciprocity is 1.9%, that is a <strong>20.6×</strong> enrichment. Impressive, and
+        almost meaningless — the random network has no hubs, and a hub is a reciprocity machine simply
+        because it has so many links that some are bound to be answered.
+      </p>
+      <p>
+        So we built the null that keeps every hero's in-degree and out-degree exactly and shuffles the
+        rest (<code>nx.directed_edge_swap</code>, 100 replicates).
+      </p>
+
+      <figure>
+        <img src="../assets/week2/reciprocity_null.png" alt="Histogram of reciprocity under two directed null models with the real value marked">
+        <figcaption>
+          Reciprocity under two directed nulls. Degree structure alone lifts the baseline from 1.9% to
+          6.5%, closing about 40% of the gap on a log scale and none of the rest.
+        </figcaption>
+      </figure>
+
+      <p>
+        Against the honest null the effect is <strong>6.0×</strong>, and still enormous: the shuffled
+        distribution sits at 6.5% ± 0.7 percentage points, and the real value is 39%, a z of +47. So the finding survives — but the headline
+        number was inflated by a factor of three and a half, and anyone quoting "13×" or "20×" is
+        reporting a property of their null model, not of Marvel.
+      </p>
+      <p>
+        What is left over after the hubs are accounted for is the actual claim: Wikipedia editors write
+        <em>mutual</em> links. If Deadpool's page mentions Cable, somebody eventually adds Deadpool to
+        Cable's page. That is a fact about how the encyclopedia is maintained, and no amount of degree
+        structure produces it.
+      </p>
+
+      <h2>5. Two kings, one per island</h2>
+
+      <p>
+        Your friends have more friends than you. In Marvel: the average hero (counting only the 286 who
+        have any links at all) has 10.0 connections, and the average connection of the average hero has
+        <strong>24.2</strong>. A factor of 2.4. And 87% of heroes — 250 out of 286 — are less popular
+        than the mean of their own friends.
+      </p>
+
+      <figure>
+        <img src="../assets/week2/friendship_paradox.png" alt="Left: mean own degree versus mean friend degree across five networks. Right: the heroes most likely to be your more-popular friend.">
+        <figcaption>
+          Left: the paradox across five networks, exact (no sampling error). The pink dashes are
+          ⟨k⟩ + σ²/⟨k⟩ — see the note below on why they are not the same number as the blue bars.
+          Right: the exact probability that each hero is the answer when a random hero is asked about a
+          random friend. "Crowns" counts how many heroes have this character as their single most
+          popular friend.
+        </figcaption>
+      </figure>
+
+      <p>
+        Who drives it? Spider-Man, mostly, and it is not close. Ask a random Marvel hero about a random
+        friend and there is a 5.6% chance the answer is Spider-Man — more than Hulk and Wolverine
+        combined. And <strong>all 106</strong> of Spider-Man's neighbours have him as
+        their most popular friend. Not most of them. All of them. There is no hero in the Marvel network
+        who links to Spider-Man and also knows someone bigger.
+      </p>
+
+      <h3>Is there a character nobody out-populars?</h3>
+      <p>
+        We looked for local maxima: heroes whose every neighbour has a degree less than or equal to their
+        own. Out of 286 connected characters there are exactly <strong>two</strong>.
+      </p>
+      <p>
+        The first is Spider-Man (106 links), which is not a surprise — he is the global maximum, so he
+        was always going to qualify. The second is <strong>Radian</strong>, a character from
+        <em>Strikeforce: Morituri</em> with six links, every one of them to another Morituri character
+        with two or three links. Radian is the king of the 9-node island from section 1. His entire
+        social world is eight people, and he is the most popular person in it.
+      </p>
+      <div class="callout">
+        <span class="callout-label">The actual finding</span>
+        <p>
+          There is one local king per island, and the Marvel network has two islands. The friendship
+          paradox does not just say "hubs exist" — it says the degree landscape is so steep that
+          <em>almost nobody</em> sits on a local peak. The closest near-miss on the mainland is Quasar,
+          with 24 links, whose best friend has 25.
+        </p>
+      </div>
+
+      <h3>The shuffle cannot kill it — and that is the point</h3>
+      <p>
+        Run the same measurement on a degree-preserving shuffle of Marvel and the paradox is untouched:
+        23.7 versus 24.2, 76% versus 75%. Of course it is. The paradox is a theorem about the degree
+        <em>distribution</em>, not about wiring: any network whose degrees have variance at all will show
+        it, because a random friend is sampled with probability tilted toward high degree. Even the
+        Marvel-sized random graph shows it (×1.1) — weak, but never absent, because even Poisson degrees
+        have σ² &gt; 0.
+      </p>
+      <p>
+        This makes the friendship paradox the exact mirror image of clustering. Clustering is destroyed
+        by a shuffle, so it is a fact about <em>wiring</em>. The paradox is immune to a shuffle, so it is
+        a fact about the <em>degree sequence</em>. Same test, opposite answers, and the answers tell you
+        which layer of the network the phenomenon lives on.
+      </p>
+
+      <div class="callout warn">
+        <span class="callout-label">A subtlety we nearly got wrong</span>
+        <p>
+          The textbook formula ⟨k⟩ + σ²/⟨k⟩ gives 22.1 for Marvel, but the actual survey answer is 24.2.
+          They are not the same quantity. The formula is the mean degree at a <em>random edge endpoint</em>
+          — hub-weighted. "Pick a random hero, then a random friend of theirs" weights every hero equally
+          and lands on 24.2. The two agree in the Marvel-sized random graph (10.40 vs 10.39) and diverge
+          in Marvel and in BA — because both are disassortative, so low-degree heroes are attached to
+          hubs at a higher rate than an edge-endpoint sample would suggest. Assortativity is the
+          third thing the paradox depends on, and none of the textbook statements mention it.
+        </p>
+      </div>
+
+      <h2>6. Grow your own Marvel</h2>
+
+      <p>
+        The other way to ask "what is really going on here" is to build a fake Marvel from a mechanism
+        and see how far you get. Preferential attachment, n = 303, m = 5 links per newcomer, tuned to
+        land on the real link count (1,490 versus 1,434).
+      </p>
+
+      <figure>
+        <img src="../assets/week2/grow_your_marvel.png" alt="Left: CCDF of the real Marvel network against a Barabási–Albert network of the same size. Right: percentage error of the model on six statistics.">
+        <figcaption>
+          A 303-node Barabási–Albert network against the real thing. Left: the degree CCDFs. Right: how
+          far off the model is on six numbers, as a percentage of the real value.
+        </figcaption>
+      </figure>
+
+      <p><strong>What it gets right, and it is genuinely impressive:</strong></p>
+      <ul>
+        <li>Mean distance: 2.63 against 2.67. Within 2%, from a model that knows nothing but "new pages link to famous pages."</li>
+        <li>The body of the degree distribution: the two CCDFs run parallel about 30% apart from k = 8 and meet around k = 30.</li>
+        <li>The sign and rough size of the assortativity (−0.06 against −0.10): the hubs really do connect to nobodies, and pure growth already produces that.</li>
+      </ul>
+
+      <p><strong>The most glaring thing it gets wrong</strong> is not the clustering, though the clustering
+        is wrong (0.08 against 0.31 — preferential attachment has no reason to close a triangle). It is
+        that <strong>the model has no bottom</strong>.</p>
+      <p>
+        Every node in a BA network arrives with exactly m = 5 links. The minimum degree is 5, by
+        construction, forever. So the model produces 0 isolates and 1 component, where Marvel has 17
+        isolates and 19 islands. Almost 6% of the real Marvel roster is characters that no hero page
+        mentions and whose own page mentions no hero, and preferential attachment cannot represent them
+        at all — not "gets the number wrong", but has no mechanism that could ever create one.
+      </p>
+      <p>
+        And at the top: the model's biggest hub has 49 links; Spider-Man has 106. Even with a mechanism
+        purpose-built for making hubs, on 303 nodes, we could not grow a Spider-Man. Whatever made
+        Spider-Man is not just "he arrived first."
+      </p>
+
+      <h2>7. What we cannot conclude</h2>
+
+      <p>
+        The obvious next move is to declare the Marvel in-degree scale-free and go home. Here is why we
+        are not doing that.
+      </p>
+
+      <figure>
+        <img src="../assets/week2/marvel_ccdf.png" alt="Left: Marvel in-degree CCDF with a maximum-likelihood power law fit. Right: Marvel, BA and random CCDFs rescaled by their mean degree.">
+        <figcaption>
+          Left: the 245 heroes with at least one incoming link, as a binned P(k) and as a CCDF (58 have
+          in-degree zero and cannot go on a log axis). The CCDF needs no bins, no bin
+          widths, and no decisions — every data point is a data point. Right: shape comparison, with
+          every degree divided by its own network's mean so the three densities do not confound the tails.
+        </figcaption>
+      </figure>
+
+      <p>
+        <strong>What we can say.</strong> The in-degree is heavy-tailed by any reasonable definition. Its
+        maximum is 18× its own mean, and the same tail survives the undirected collapse, where 100 random
+        networks with Marvel's exact n and m topped out at 19.0 ± 1.7 against Marvel's 106 — some 53
+        standard deviations out. The distribution is not Poisson, and no amount of arguing about fits
+        changes that.
+      </p>
+      <p>
+        <strong>What we cannot say.</strong> That it is a power law. We ran the Clauset-style fit
+        properly — scan k<sub>min</sub>, maximum-likelihood γ at each, keep the k<sub>min</sub> that
+        minimises the KS distance. It picks k<sub>min</sub> = 11, γ = 2.62, KS = 0.086, on a tail of
+        <strong>46 heroes</strong>. Then we fitted a truncated log-normal to the same 46 points and ran a
+        likelihood-ratio test: normalised R = −0.78, p = 0.43. The data cannot tell the two apart. If
+        anything, the log-normal is very slightly ahead.
+      </p>
+      <p>
+        And read the slope off by eye across the whole range, as everyone does, and you get γ ≈ 2.31 —
+        different from the fitted 2.62 by more than the difference between most competing theories.
+      </p>
+
+      <div class="callout warn">
+        <span class="callout-label">The demonstration that convinced us</span>
+        <p>
+          We grew a 5,000-node Barabási–Albert network — a network we <em>know</em> has γ = 3, because we
+          wrote the loop that generates it — and ran the same maximum-likelihood estimator on it at
+          different k<sub>min</sub>:
+        </p>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th class="num">k<sub>min</sub></th><th class="num">2</th><th class="num">3</th><th class="num">5</th><th class="num">10</th><th class="num">20</th><th class="num">40</th></tr></thead>
+            <tbody>
+              <tr><td>estimated γ</td><td class="num">2.36</td><td class="num">2.50</td><td class="num">2.70</td><td class="num">2.87</td><td class="num">3.02</td><td class="num">4.95</td></tr>
+              <tr><td>nodes in the tail</td><td class="num">1,629</td><td class="num">820</td><td class="num">353</td><td class="num">99</td><td class="num">26</td><td class="num">7</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The true answer is 3. The estimator wanders from 2.36 to 4.95 depending on where you cut, and
+          it passes through the right value at a cut that leaves <strong>26 nodes</strong>. On a network
+          sixteen times bigger than Marvel, with a known exponent and no measurement noise whatsoever,
+          the answer you get is mostly a function of a choice you made.
+        </p>
+        <p>
+          Our γ = 2.62 is therefore not really a measurement of Marvel. It is a measurement of what an
+          estimator does when you hand it 46 numbers.
+        </p>
+      </div>
+
+      <p>
+        <strong>What it would take.</strong> More nodes — the whole of Wikipedia's comics coverage rather
+        than one category, which is roughly the "crawl your own category" option the course offers for
+        weeks 2–4. Or a goodness-of-fit p-value from synthetic resampling rather than a bare KS number.
+        Or, better, stop asking. "Power law versus log-normal" is a question about functional forms;
+        "does this network have hubs that a random graph could never produce" is a question about the
+        world, and we can answer that one with confidence.
+      </p>
+
+      <h2>8. What we would tell last week's us</h2>
+      <p>
+        Every descriptive number needs the sentence "compared to what" attached to it, and the choice of
+        comparison is not a technicality — it moved our reciprocity headline by a factor of 3.5 and our
+        clustering baseline by 42%. The rule we are taking forward: <em>state the null, state how many
+        replicates, state what the null preserves, and state what it cannot move.</em>
+      </p>
+      <p>
+        And there is a nice symmetry in the results. Clustering, triangles and the separate island are
+        facts about <strong>wiring</strong> — the shuffle destroys them. The friendship paradox, the
+        isolates, the hub's share of links are facts about the <strong>degree sequence</strong> — the
+        shuffle cannot touch them. The diameter is a fact about <strong>neither</strong>; it falls out of
+        n, m and the degree sequence together. Three different kinds of finding, and one test tells them
+        apart.
+      </p>
+
+      <div class="tldr">
+        <h3>Reproduce it</h3>
+        <p>
+          Two scripts, no notebooks, seeded throughout:
+        </p>
+        <pre><code>pip install -r requirements.txt
+python analysis/week2_models.py   # 2.2, 2.4, 2.5b, 2.6
+python analysis/week2_nulls.py    # 2.8, 2.9, the shuffle battery, grow-your-Marvel</code></pre>
+        <p>
+          Figures go to <code>docs/assets/week2/</code>, every number in this post to
+          <code>analysis/week2_results_models.json</code> and
+          <code>analysis/week2_results_nulls.json</code>. The Shuffle Machine above is 350 lines of
+          dependency-free JavaScript in <code>docs/assets/week2/shuffle-machine.js</code> — view source,
+          it is all there.
+        </p>
+      </div>
+
+      <div class="post-nav">
+        <a href="week2-exercises.html">→ Our full week-2 solutions (2.1 – 2.10)</a>
+        <a href="week1.html">← Week 1: Fame, curation, and the islands</a>
+        <a href="../index.html">All posts</a>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <a href="../index.html">Home</a>
+      ·
+      <a href="https://github.com/Benyla/02805_SGI" target="_blank" rel="noopener">GitHub repo</a>
+      ·
+      <a href="https://sunelehmann.com/socialgraphs2026-web/weeks/week2.html" target="_blank" rel="noopener">Course Week 2</a>
+    </p>
+  </footer>
+
+  <script src="../assets/week2/marvel_gc.js"></script>
+  <script src="../assets/week2/shuffle-machine.js"></script>
+</body>
+</html>
