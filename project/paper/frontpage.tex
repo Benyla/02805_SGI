@@ -1,0 +1,50 @@
+% Front page, after Forside.tex. Letter paper to match the PNAS pages.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[margin=2cm]{geometry}
+\pagestyle{empty}
+
+\begin{document}
+\begin{titlepage}
+	\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+	\center
+
+	\textsc{\LARGE Danmarks Tekniske Universitet}\\[0.6cm]
+	\includegraphics[scale=0.12]{DTULogo.png}\\[0.5cm]
+	\textsc{\large 02805 Social Graphs and Interactions}\\[0.4cm]
+
+	\HRule\\[0.35cm]
+	{\huge\bfseries Many faces, few hands}\\[0.25cm]
+	{\Large How credit networks reveal Spotify's ghost artists,\\[0.1cm] and where the recommender puts them}\\[0.2cm]
+	\HRule\\[0.6cm]
+
+	% 2,500 album covers from the dataset, sorted by colour (src/figures/cover_mosaic.py)
+	\includegraphics[width=0.62\linewidth]{cover_mosaic.jpg}\\[0.15cm]
+	{\footnotesize\color{gray} 2,500 of the 8,056 album covers in the dataset, sorted by colour}\\[0.7cm]
+
+	\begin{minipage}{0.31\textwidth}
+		\centering
+		August Holm J{\o}rgensen\\
+		s224166
+	\end{minipage}%
+	\begin{minipage}{0.31\textwidth}
+		\centering
+		Bertram Nyvold Larsen\\
+		s224194
+	\end{minipage}%
+	\begin{minipage}{0.31\textwidth}
+		\centering
+		Saxe Br{\o}ten\\
+		s224224
+	\end{minipage}
+	\\[0.8cm]
+
+	\vfill
+	{\large 27 November 2026}
+\end{titlepage}
+\end{document}

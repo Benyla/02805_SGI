@@ -30,15 +30,33 @@ From the repo root:
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r project/requirements.txt
 cd project
-# Raw data (only needed on a fresh clone: the CSVs are committed, the covers are not)
+# Raw data (only on a fresh clone: the CSVs are committed, covers are not)
 #   put spotify_50_playlists.zip and spotify_covers_640_part0{1..6}_of_06.tar in data/raw/archives/
 unzip -qj data/raw/archives/spotify_50_playlists.zip -d data/raw
 for f in data/raw/archives/*.tar; do tar xf "$f" -C data/raw; done
-python -m src.load                    # row counts and join checks
-python -m src.figures.descriptives    # phase 1 figures and notes/descriptives.md
 ```
 
-All scripts are run from `project/` as modules (`python -m src...`).
+## Run order
+
+All scripts run from `project/` as modules. Seeds are fixed.
+
+| Step | Command | Output |
+|---|---|---|
+| 0 | `python -m src.load` | row counts, join checks |
+| 1 | `python -m src.figures.descriptives` | `notes/descriptives.md` |
+| 2 | `python -m src.features.build` then `python -m src.features.convergence` | `artist_features.parquet`, `notes/convergence.md`, `notes/hand_label_sheet.csv` |
+| 3 | `python -m src.networks.ownership`, `python -m src.networks.recommendation` | `ownership.json`, `recommendation.json` |
+| 4 | `python -m src.features.text` | `text.json` (needs `python -m spacy download en_core_web_sm`) |
+| 5 | `python -m src.features.vision`, `python -m src.features.vision_analysis` | CLIP embeddings, `vision.json` (exploratory) |
+| 6 | `python -m src.features.audio`, `python -m src.features.audio_analysis` | Deezer previews (gitignored), `audio.json` (exploratory) |
+| figs | `python -m src.figures.fig1_data` … `fig5_text`, `cover_mosaic` | `figures/`, `paper/cover_mosaic.jpg` |
+| paper | `paper/build.sh` | `paper/report.pdf` = front page + 6-page PNAS paper |
+
+Every number in the paper is a macro in `paper/numbers.tex`, written by `python -m src.paper_numbers`.
+
+## Hand labels (to do)
+
+`notes/hand_label_sheet.csv` lists 150 artists. Each of us labels them independently (1 = ghost, 0 = real) in our own column, without looking at the scores, then runs `python -m src.features.kappa`.
 
 ## Ethics
 

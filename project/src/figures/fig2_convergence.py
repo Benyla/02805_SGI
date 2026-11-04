@@ -1,11 +1,11 @@
-"""Figure 3: three independent views agree, and where the ghost-like names sit.
+"""Figure 2: three independent views agree, and where the ghost-like names sit.
 
 A  Functional-playlist artists binned by how many of 5 identity markers are missing; mean
    production and demand score per bin (95% bootstrap CI). Inset: Spearman rho (functional only).
 B  Share labelled ghost-like in reference groups that were not used to build the label.
 C  Ghost-like share of each playlist's slots (dot area ~ followers).
 
-    python -m src.figures.fig3_convergence
+    python -m src.figures.fig2_convergence
 """
 from __future__ import annotations
 
@@ -88,8 +88,8 @@ def panel_c(ax) -> None:
     ax.set_xlabel("Playlist slots held by ghost-like names")
     ax.grid(axis="y", visible=False)
     # hand-placed callouts (text x, text y) so they never collide
-    for name, tx, ty, ha in [("Calming Classical", 0.0, 1.62, "left"), ("lofi beats", 0.44, 1.36, "center"),
-                             ("Sleep", 0.80, 0.55, "center"), ("Women of Ambient", 0.06, 0.55, "left"),
+    for name, tx, ty, ha in [("Calming Classical", 0.0, 1.62, "left"), ("lofi beats", 0.46, 0.62, "center"),
+                             ("Sleep", 0.80, 0.55, "center"), ("Women of Ambient", 0.02, 0.38, "left"),
                              ("Jazz for Sleep", 1.0, 1.36, "right")]:
         r = p[p.name == name]
         if len(r):
@@ -114,7 +114,7 @@ def main() -> None:
     panel_a(axes[0], df, rng)
     panel_b(axes[1], df)
     panel_c(axes[2])
-    style.save(fig, "fig3_convergence")
+    style.save(fig, "fig2_convergence")
 
 
 if __name__ == "__main__":

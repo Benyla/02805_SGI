@@ -26,3 +26,7 @@ project/paper/*.bbl
 project/paper/*.blg
 project/data/processed/*.npy
 project/data/processed/*.txt
+project/paper/cover_mosaic*.jpg
+project/paper/frontpage.pdf
+project/paper/report.pdf
+project/data/processed/fig4_layout.npy

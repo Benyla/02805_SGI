@@ -1,0 +1,7 @@
+% Front page + paper in one PDF. Built by build.sh.
+\documentclass[letterpaper]{article}
+\usepackage{pdfpages}
+\begin{document}
+\includepdf{frontpage.pdf}
+\includepdf[pages=-]{main.pdf}
+\end{document}

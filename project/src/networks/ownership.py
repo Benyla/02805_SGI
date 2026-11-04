@@ -96,7 +96,14 @@ def main() -> None:
         "distinct_houses": int(r.nunique()), "top8_share_names": float(vc.head(8).sum() / len(r)),
         "top10_share_names": float(vc.head(10).sum() / len(r)),
         "se_share": float(r.str.startswith("SE").mean()),
+        "median_house_ghost": float(df.loc[df.ghost_noprod, "registrant_house_size"].median()),
+        "median_house_real": float(df.loc[~df.ghost_noprod, "registrant_house_size"].median()),
     }
+    gs = pa[(pa.group == "functional") & pa.artist_id.map(df.ghost_noprod).fillna(False).astype(bool)]
+    vc2 = gs.registrant.value_counts()
+    out["noprod"]["top8_share_of_ghost_slots"] = float(vc2.head(8).sum() / gs.registrant.notna().sum())
+    out["noprod"]["functional_slot_ghost_share"] = float(
+        pa.loc[pa.group == "functional", "artist_id"].map(df.ghost_noprod).astype(float).mean())
     (PROCESSED / "ownership.json").write_text(json.dumps(out, indent=1, default=float))
     for k, v in out.items():
         print(f"  {k}: {v}")

@@ -1,4 +1,4 @@
-"""Figure 2: many faces, few hands.
+"""Figure 3: many faces, few hands.
 
 A  Ownership network. Every dark node is an ISRC registrant ("house"); every dot around it is
    an artist name whose tracks it registered (dominant registrant). Disc area ~ number of
@@ -6,7 +6,7 @@ A  Ownership network. Every dark node is an ISRC registrant ("house"); every dot
 B  House size seen from each name (CCDF), ghost-like vs real.
 C  Cumulative share of functional-playlist slots covered by the k largest houses.
 
-    python -m src.figures.fig2_ownership
+    python -m src.figures.fig3_ownership
 """
 from __future__ import annotations
 
@@ -27,6 +27,9 @@ from src.figures.style import GHOST, REAL, TEXT, TEXT_2
 from src.load import PROCESSED
 
 HUB = "#1f1f1e"
+# Label built WITHOUT production features (identity + demand only), so that "ghost-like
+# names sit in big houses" is not true by construction.
+LABEL, PLABEL = "ghost_noprod", "p_ghost_noprod"
 
 
 def house_label(t: pd.DataFrame) -> dict[str, str]:
@@ -59,11 +62,11 @@ def panel_network(ax) -> None:
 
     name_xy, name_ghost = {}, {}
     for h, names in members.items():
-        p = df.p_ghost.reindex(names).fillna(0).sort_values(ascending=False)
+        p = df[PLABEL].reindex(names).fillna(0).sort_values(ascending=False)
         xy = vogel(len(p), spacing) + hpos[h]
         for n, q in zip(p.index, xy):
             name_xy[n] = q
-            name_ghost[n] = bool(df.ghost.get(n, False))
+            name_ghost[n] = bool(df[LABEL].get(n, False))
 
     # spokes
     segs = [(hpos[dom[n]], xy) for n, xy in name_xy.items()]
@@ -122,9 +125,9 @@ def panel_network(ax) -> None:
 
 def panel_ccdf(ax) -> None:
     df = pd.read_parquet(PROCESSED / "artist_features.parquet")
-    own = json.loads((PROCESSED / "ownership.json").read_text())
+    own = json.loads((PROCESSED / "ownership.json").read_text())["noprod"]
     s = df.dropna(subset=["registrant_house_size"])
-    for lab, m, c in [("real artists", ~s.ghost, REAL), ("ghost-like names", s.ghost, GHOST)]:
+    for lab, m, c in [("real artists", ~s[LABEL], REAL), ("ghost-like names", s[LABEL], GHOST)]:
         x = np.sort(s.loc[m, "registrant_house_size"].to_numpy())
         y = 1 - np.arange(len(x)) / len(x)
         ax.step(x, y, where="post", color=c, lw=1.6, label=f"{lab} ({len(x):,})")
@@ -133,9 +136,9 @@ def panel_ccdf(ax) -> None:
     ax.set_xlabel("Names registered by the same house")
     ax.set_ylabel("Share of names in a\nhouse at least this big")
     ax.set_title("B  House size, seen from a name", loc="left")
-    ax.legend(loc="lower left", fontsize=5.6, bbox_to_anchor=(0.04, 0.0), handlelength=1.2)
+    ax.legend(loc="center", fontsize=5.6, bbox_to_anchor=(0.55, 0.7), handlelength=1.2)
     ax.annotate(f"median {own['median_house_ghost']:.0f}", xy=(own["median_house_ghost"], 0.5),
-                xytext=(18, 0.62), fontsize=5.6, color=TEXT_2,
+                xytext=(30, 0.42), fontsize=5.6, color=TEXT_2,
                 arrowprops=dict(arrowstyle="-", color=TEXT_2, lw=0.5))
     ax.annotate(f"median {own['median_house_real']:.0f}", xy=(own["median_house_real"], 0.5),
                 xytext=(1.6, 0.22), fontsize=5.6, color=TEXT_2,
@@ -143,12 +146,12 @@ def panel_ccdf(ax) -> None:
 
 
 def panel_concentration(ax) -> None:
-    own = json.loads((PROCESSED / "ownership.json").read_text())
+    own = json.loads((PROCESSED / "ownership.json").read_text())["noprod"]
     df = pd.read_parquet(PROCESSED / "artist_features.parquet")
     pa = placement()
     pa = pa[pa.is_primary & (pa.group == "functional")]
     for lab, want, c in [("real slots", False, REAL), ("ghost-like slots", True, GHOST)]:
-        reg = pa.artist_id.map(df.registrant_dom)[pa.artist_id.map(df.ghost) == want].dropna()
+        reg = pa.artist_id.map(df.registrant_dom)[pa.artist_id.map(df[LABEL]) == want].dropna()
         vc = reg.value_counts().to_numpy()
         cum = np.cumsum(vc) / vc.sum()
         ax.plot(np.arange(1, len(cum) + 1), cum, color=c, lw=1.6, label=lab, drawstyle="steps-post")
@@ -171,7 +174,7 @@ def main() -> None:
     panel_network(fig.add_subplot(gs[:, 0]))
     panel_ccdf(fig.add_subplot(gs[0, 1]))
     panel_concentration(fig.add_subplot(gs[1, 1]))
-    style.save(fig, "fig2_ownership")
+    style.save(fig, "fig3_ownership")
 
 
 if __name__ == "__main__":

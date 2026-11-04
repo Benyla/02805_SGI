@@ -36,6 +36,10 @@
   "distinct_houses": 77,
   "top8_share_names": 0.8058294042006001,
   "top10_share_names": 0.8958422631804543,
-  "se_share": 0.8414059151307329
+  "se_share": 0.8414059151307329,
+  "median_house_ghost": 232.0,
+  "median_house_real": 6.0,
+  "top8_share_of_ghost_slots": 0.8397120121258053,
+  "functional_slot_ghost_share": 0.7468354430379747
  }
 }
