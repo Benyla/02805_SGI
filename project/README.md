@@ -44,19 +44,17 @@ All scripts run from `project/` as modules. Seeds are fixed.
 |---|---|---|
 | 0 | `python -m src.load` | row counts, join checks |
 | 1 | `python -m src.figures.descriptives` | `notes/descriptives.md` |
-| 2 | `python -m src.features.build` then `python -m src.features.convergence` | `artist_features.parquet`, `notes/convergence.md`, `notes/hand_label_sheet.csv` |
+| 2 | `python -m src.features.build` then `python -m src.features.convergence` | `artist_features.parquet` (with the `ghost` flag), `notes/convergence.md` |
 | 3 | `python -m src.networks.ownership`, `python -m src.networks.recommendation` | `ownership.json`, `recommendation.json` |
 | 4 | `python -m src.features.text` | `text.json` (needs `python -m spacy download en_core_web_sm`) |
 | 5 | `python -m src.features.vision`, `python -m src.features.vision_analysis` | CLIP embeddings, `vision.json` (exploratory) |
 | 6 | `python -m src.features.audio`, `python -m src.features.audio_analysis` | Deezer previews (gitignored), `audio.json` (exploratory) |
 | figs | `python -m src.figures.fig1_data` … `fig5_text`, `cover_mosaic` | `figures/`, `paper/cover_mosaic.jpg` |
+
+The ghost-like flag is one rule: a name lacks at least 4 of 5 identity markers (`src/features/convergence.py`). The previous version of the paper is kept in `paper/archive/`.
 | paper | `paper/build.sh` | `paper/report.pdf` = front page + 6-page PNAS paper |
 
 Every number in the paper is a macro in `paper/numbers.tex`, written by `python -m src.paper_numbers`.
-
-## Hand labels (to do)
-
-`notes/hand_label_sheet.csv` lists 150 artists. Each of us labels them independently (1 = ghost, 0 = real) in our own column, without looking at the scores, then runs `python -m src.features.kappa`.
 
 ## Ethics
 

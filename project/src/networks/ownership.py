@@ -1,8 +1,8 @@
 """Phase 3.1 + 3.2: ownership (names -> houses) and placement (playlists -> names).
 
 Ownership: bipartite graph of artist names and ISRC registrants ("houses"); an edge means
-the name has a track registered by that house. House size = degree of the house node,
-counted in primary-artist names.
+the name has a track registered by that house. A name's house is the registrant of most of
+its tracks; a house's size is the number of names whose house it is.
 
 Placement: share of playlist slots held by ghost-like names, per playlist.
 
@@ -87,23 +87,25 @@ def main() -> None:
             df.loc[(~df.ghost) & (df.group == "functional"), "self_source_share"].gt(0.5).mean()),
         "self_source_house_median": float(df.loc[df.self_source_share > 0.5, "registrant_house_size"].median()),
     }
-    # robustness: same concentration with the production-free label
-    r = df.loc[df.ghost_noprod, "registrant_dom"].dropna()
-    vc = r.value_counts()
-    out["noprod"] = {
-        "ghost_names": int(df.ghost_noprod.sum()), "with_registrant": int(len(r)),
-        "agreement_with_full_label": float((df.ghost_noprod == df.ghost).mean()),
-        "distinct_houses": int(r.nunique()), "top8_share_names": float(vc.head(8).sum() / len(r)),
-        "top10_share_names": float(vc.head(10).sum() / len(r)),
-        "se_share": float(r.str.startswith("SE").mean()),
-        "median_house_ghost": float(df.loc[df.ghost_noprod, "registrant_house_size"].median()),
-        "median_house_real": float(df.loc[~df.ghost_noprod, "registrant_house_size"].median()),
-    }
-    gs = pa[(pa.group == "functional") & pa.artist_id.map(df.ghost_noprod).fillna(False).astype(bool)]
-    vc2 = gs.registrant.value_counts()
-    out["noprod"]["top8_share_of_ghost_slots"] = float(vc2.head(8).sum() / gs.registrant.notna().sum())
-    out["noprod"]["functional_slot_ghost_share"] = float(
-        pa.loc[pa.group == "functional", "artist_id"].map(df.ghost_noprod).astype(float).mean())
+    # label-free: houses by the code on each slot's own track (no ghost label involved)
+    tr = t.set_index("track_id").registrant
+    pa["track_registrant"] = pa.track_id.map(tr)
+    lf = {}
+    for grp in ("functional", "genre"):
+        s = pa.loc[pa.group == grp, "track_registrant"]
+        vc = s.value_counts()
+        lf[grp] = {"slots": int(len(s)), "with_code": float(s.notna().mean()),
+                   "top8": vc.head(8).index.tolist(),
+                   "top8_share_of_coded": float(vc.head(8).sum() / vc.sum()),
+                   "top8_share_of_all": float(vc.head(8).sum() / len(s)),
+                   "n_houses": int(len(vc))}
+    out["label_free"] = lf
+    out["n_multi_house"] = int((B.groupby("primary_artist").registrant.nunique() > 1).sum())
+    out["genre_names_flagged"] = int(df.loc[df.group == "genre", "ghost"].sum())
+    out["genre_names"] = int((df.group == "genre").sum())
+    vc = df.loc[df.ghost, "registrant_dom"].dropna().value_counts()
+    out["top8_share_of_ghost_names"] = float(vc.head(8).sum() / vc.sum())
+    out["ghost_top8_swedish"] = int(sum(h.startswith("SE") for h in vc.head(8).index))
     (PROCESSED / "ownership.json").write_text(json.dumps(out, indent=1, default=float))
     for k, v in out.items():
         print(f"  {k}: {v}")

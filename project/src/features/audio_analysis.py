@@ -22,6 +22,9 @@ from src.load import PROCESSED, SEED
 
 def main() -> None:
     a = pd.read_parquet(PROCESSED / "audio_features.parquet")
+    # the sample was drawn with an earlier label; always score it with the current one
+    df = pd.read_parquet(PROCESSED / "artist_features.parquet")
+    a["ghost"] = a.artist_id.map(df.ghost).astype(bool)
     X = a.drop(columns=["track_id", "artist_id", "playlist_id", "ghost"]).to_numpy(float)
     y = a.ghost.astype(int).to_numpy()
     cv = StratifiedKFold(5, shuffle=True, random_state=SEED)

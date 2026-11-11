@@ -1,113 +1,174 @@
-"""Figure 1: the data as three linked layers (schematic; every count is computed).
+"""Figure 1: where the playlist slots go. Every band is a count from the data.
 
-Top layer: playlists. Middle: artist names. Bottom: ISRC houses.
-Edges: placement (playlist - name), "Fans also like" (name -> name), ownership (name - house).
+Left: the 50 playlists, grouped by kind. Middle: whether the slot's (primary) artist name is
+ghost-like. Right: who registered the slot's recording (ISRC registrant, the "house"): the
+eight largest houses, all other houses, or no code (track not found on Deezer).
+Band width = number of playlist slots.
 
     python -m src.figures.fig1_data
 """
 from __future__ import annotations
 
-import json
-
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+import pandas as pd
+from matplotlib.patches import PathPatch, Rectangle
+from matplotlib.path import Path
 
+from src.common import placement
+from src.features.production import track_houses
 from src.figures import style
-from src.figures.style import GHOST, REAL, TEXT, TEXT_2
-from src.load import PROCESSED, SEED, load
+from src.figures.houses import company, display_names, top_houses
+from src.figures.style import GHOST, NEUTRAL, REAL, TEXT, TEXT_2
+from src.load import PROCESSED, load
 
-GENRE_C = "#a3a29c"
+# Playlist kinds, by playlist name. Chosen by what the playlist is for, not by its content.
+KINDS = {
+    "Sleep": ["Sleep", "Deep Sleep", "Guitar for Sleep", "goodnight.", "Sleepy Piano",
+              "Floating Through Space", "Ambient Dreams", "Dreamy Forest Music", "Jazz for Sleep"],
+    "Focus and study": ["Deep Focus", "Ambient Study", "Focus Piano", "Reading Soundtrack", "Coffee Beats",
+                        "Music for Concentration", "Intense Studying", "Piano in the Background",
+                        "lofi beats", "Chill Instrumental Beats", "chillhop", "Workday Lounge",
+                        "Jazz for Study"],
+    "Calm and relax": ["Calm", "calm vibes", "Stress Relief", "Peaceful Meditation", "Yoga & Meditation",
+                       "Chill Out Music", "Ambient Relaxation", "Spa Treatment", "Soft Lounge",
+                       "Calming Acoustic", "Sweater Weather Instrumentals", "rainy day piano",
+                       "Relaxing Piano Covers", "mentally i'm here"],
+    "Jazz": ["Jazz in the Background", "Chilled Jazz", "Cozy Coffee Shop Jazz", "Date Night Jazz"],
+    "Classical and ambient": ["Calming Classical", "Women of Classical", "Atmospheric Piano",
+                              "Ambient Essentials", "Women of Ambient"],
+}
+GENRE = "Genre playlists (control)"
+OTHER, NOCODE = "All other houses", "No recording code"
+HOUSE_C = "#3d3c38"
+
+
+def slots() -> pd.DataFrame:
+    df = pd.read_parquet(PROCESSED / "artist_features.parquet")
+    pl = load("playlists").set_index("playlist_id")
+    kind = {n.strip(): k for k, names in KINDS.items() for n in names}
+    pa = placement()
+    pa = pa[pa.is_primary].copy()
+    pa["kind"] = [GENRE if g == "genre" else kind[n.strip()] for g, n in zip(pa.group, pa.name)]
+    pa["label"] = np.where(pa.artist_id.map(df.ghost).fillna(False).astype(bool), "ghost", "real")
+    reg = pa.track_id.map(track_houses().set_index("track_id").registrant)
+    names = display_names()
+    pa["house"] = np.where(reg.isna(), NOCODE, reg.map(names).fillna(OTHER))
+    assert len(pa.name.unique()) == len(pl), "every playlist must have a kind"
+    return pa
+
+
+def stack(order: list[str], sizes: pd.Series, gap: float, top: float = 1.0) -> dict[str, list[float]]:
+    """Node -> [y_top, y_bottom], stacked from the top with a gap between nodes."""
+    out, y = {}, top
+    for k in order:
+        h = sizes.get(k, 0)
+        out[k] = [y, y - h]
+        y -= h + gap
+    return out
+
+
+def band(ax, x0, y0, x1, y1, h, color, alpha) -> None:
+    """Smooth band from (x0, y0..y0-h) to (x1, y1..y1-h)."""
+    xm = (x0 + x1) / 2
+    verts = [(x0, y0), (xm, y0), (xm, y1), (x1, y1), (x1, y1 - h), (xm, y1 - h), (xm, y0 - h), (x0, y0 - h),
+             (x0, y0)]
+    codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.LINETO, Path.CURVE4, Path.CURVE4,
+             Path.CURVE4, Path.CLOSEPOLY]
+    ax.add_patch(PathPatch(Path(verts, codes), fc=color, ec="none", alpha=alpha, zorder=1))
 
 
 def main() -> None:
     style.apply()
-    rng = np.random.default_rng(SEED)
-    pl, t, ar = load("playlists"), load("tracks"), load("artists")
-    pt, fal = load("playlist_tracks"), load("fans_also_like_edges")
-    own = json.loads((PROCESSED / "ownership.json").read_text())
-    rec = json.loads((PROCESSED / "recommendation.json").read_text())
+    pa = slots()
+    N = len(pa)
+    scale = 0.86 / N  # share of the vertical space taken by bars; the rest is gaps
+    cols = {
+        "kind": (list(KINDS) + [GENRE], 0.022),
+        "label": (["ghost", "real"], 0.03),
+        "house": ([f"House {k}" for k in range(1, 9)] + [OTHER, NOCODE], 0.008),
+    }
+    X = {"kind": 0.25, "label": 0.46, "house": 0.715}
+    W = 0.012
+    pos = {}
+    for c, (order, gap) in cols.items():
+        sizes = pa[c].value_counts() * scale
+        total = sizes.sum() + gap * (len(order) - 1)
+        pos[c] = stack(order, sizes, gap, top=0.5 + total / 2)
 
-    fig, ax = plt.subplots(figsize=(7.08, 2.55))
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 40)
+    fig, ax = plt.subplots(figsize=(7.08, 3.55))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-0.04, 1.04)
     ax.axis("off")
 
-    yP, yA, yH = 34, 19.5, 5
-    # layer bands
-    for y, lab in [(yP, "Playlists"), (yA, "Artist names"), (yH, "ISRC houses")]:
-        ax.add_patch(FancyBboxPatch((1, y - 4.2), 62, 8.4, boxstyle="round,pad=0,rounding_size=2",
-                                    fc="#f4f3f0", ec="none", zorder=0))
-        ax.text(2.2, y + 3.0, lab, fontsize=6.5, fontweight="bold", color=TEXT_2, va="center")
+    lab_col = {"ghost": GHOST, "real": REAL}
+    # bands: kind -> label (coloured by label), then label -> house (coloured by label)
+    for a, b, col_by in [("kind", "label", "label"), ("label", "house", "label")]:
+        flows = pa.groupby([a, b]).size() * scale
+        out_y = {k: v[0] for k, v in pos[a].items()}
+        in_y = {k: v[0] for k, v in pos[b].items()}
+        for (s, t) in sorted(flows.index, key=lambda st: (cols[a][0].index(st[0]), cols[b][0].index(st[1]))):
+            h = flows[(s, t)]
+            # sorted source-first, so bands arrive at each target in source order
+            band(ax, X[a] + W, out_y[s], X[b], in_y[t], h, lab_col[t if col_by == b else s], 0.42)
+            out_y[s] -= h
+            in_y[t] -= h
+    # nodes
+    for c, (order, _) in cols.items():
+        for k in order:
+            yt, yb = pos[c][k]
+            fc = lab_col.get(k, HOUSE_C if c != "kind" else "#6f6e69")
+            if k in (OTHER, NOCODE):
+                fc = NEUTRAL
+            ax.add_patch(Rectangle((X[c], yb), W, yt - yb, fc=fc, ec="none", zorder=2))
 
-    # playlists: 9 functional + 2 genre shown
-    px = np.r_[np.linspace(8, 46, 9), [53, 58.5]]
-    pc = ["functional"] * 9 + ["genre"] * 2
-    # names: ghost cluster around houses, real names elsewhere
-    n_g, n_r = 26, 12
-    ax_g = np.sort(rng.uniform(6, 44, n_g))
-    ax_r = np.sort(rng.uniform(40, 61, n_r))
-    ax_r[:4] = rng.uniform(10, 40, 4)  # real artists on functional playlists (e.g. classical)
-    names_x = np.r_[ax_g, ax_r]
-    names_y = yA + rng.uniform(-2.4, 2.4, len(names_x))
-    is_g = np.r_[np.ones(n_g, bool), np.zeros(n_r, bool)]
-    # houses: 3 big ghost houses, several small labels
-    hx = np.array([12, 25, 38, 47, 52, 56, 60])
-    hsize = np.array([95, 80, 70, 14, 10, 12, 9])
-    # placement edges
-    for i, x in enumerate(names_x):
-        cand = np.where(np.array(pc) == ("genre" if (not is_g[i] and x > 50) else "functional"))[0]
-        j = cand[np.argmin(np.abs(px[cand] - x) + rng.uniform(0, 8, len(cand)))]
-        ax.plot([x, px[j]], [names_y[i], yP], color="#c9c8c2", lw=0.45, zorder=1)
-    # ownership edges
-    for i, x in enumerate(names_x):
-        k = np.argmin(np.abs(hx[:3] - x)) if is_g[i] else 3 + np.argmin(np.abs(hx[3:] - x))
-        ax.plot([x, hx[k]], [names_y[i], yH], color="#c9c8c2", lw=0.45, zorder=1)
-    # Fans-also-like arcs among names
-    for _ in range(16):
-        i, j = rng.choice(len(names_x), 2, replace=False)
-        if abs(names_x[i] - names_x[j]) > 14:
-            continue
-        ax.add_patch(FancyArrowPatch((names_x[i], names_y[i]), (names_x[j], names_y[j]),
-                                     connectionstyle="arc3,rad=0.5", arrowstyle="-|>,head_length=1.6,head_width=0.9",
-                                     color="#6f6e69", lw=0.45, zorder=2))
-    ax.scatter(px, [yP] * len(px), s=46, marker="s",
-               c=["#3d3c38" if c == "functional" else GENRE_C for c in pc], zorder=3, lw=0)
-    ax.scatter(names_x[is_g], names_y[is_g], s=13, c=GHOST, zorder=3, lw=0.4, ec="white")
-    ax.scatter(names_x[~is_g], names_y[~is_g], s=13, c=REAL, zorder=3, lw=0.4, ec="white")
-    ax.scatter(hx, [yH] * len(hx), s=hsize, c="#1f1f1e", zorder=3, lw=0.6, ec="white")
+    fs = 6.5
+    # left labels
+    n_kind = pa.groupby("kind").size()
+    n_pl = pa.groupby("kind").name.nunique()
+    for k in cols["kind"][0]:
+        yt, yb = pos["kind"][k]
+        ax.text(X["kind"] - 0.008, (yt + yb) / 2, f"{k}\n{n_pl[k]} playlists · {n_kind[k]:,} slots",
+                ha="right", va="center", fontsize=fs, color=TEXT, linespacing=1.2)
+    # middle labels
+    n_lab = pa.groupby("label").size()
+    mood = pa[pa.group == "functional"].label.value_counts(normalize=True)
+    for k, txt in [("ghost", "ghost-like names"), ("real", "real artists")]:
+        yt, yb = pos["label"][k]
+        ax.text(X["label"] + W + 0.008, yt - 0.012,
+                f"{txt}\n{n_lab[k]:,} slots\n{mood[k]:.0%} of mood-playlist slots",
+                ha="left", va="top", fontsize=fs, color=lab_col[k], fontweight="bold", linespacing=1.2,
+                bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85), zorder=4)
+    # right labels
+    comp = company()
+    names = {v: k for k, v in display_names().items()}
+    n_h = pa.groupby("house").size()
+    for k in cols["house"][0]:
+        yt, yb = pos["house"][k]
+        if k.startswith("House"):
+            co = comp[names[k]]
+            txt = f"{k}  {names[k]} · {co}  ({n_h[k]:,})"
+        else:
+            txt = f"{k}  ({n_h[k]:,})"
+        ax.text(X["house"] + W + 0.008, (yt + yb) / 2, txt, ha="left", va="center", fontsize=fs - 0.3,
+                color=TEXT if k.startswith("House") else TEXT_2)
 
-    # edge-type labels
-    lab_kw = dict(fontsize=5.6, color=TEXT, ha="left", va="center",
-                  bbox=dict(fc="white", ec="#c9c8c2", lw=0.5, boxstyle="round,pad=0.25"))
-    ax.text(48.5, (yP + yA) / 2 + 0.3, "placement: name is on playlist", **lab_kw)
-    ax.text(16.5, yA + 5.6, "Fans also like: name points to name", **lab_kw)
-    ax.text(48.5, (yA + yH) / 2 - 0.3, "ownership: house registered the name's tracks", **lab_kw)
-
-    # right-hand column: what each layer holds
-    col = 79.5
-    blocks = [
-        (yP + 1.0, f"{len(pl)} Spotify editorial playlists",
-         f"{(pl.group == 'functional').sum()} functional (sleep, focus, chill, jazz…)\n"
-         f"{(pl.group == 'genre').sum()} genre controls · {len(pt):,} slots · descriptions"),
-        (yA + 2.2, f"{len(ar):,} names · {len(t):,} tracks",
-         "identity: verified, bio, links, gallery\n"
-         f"demand: followers, listeners, cities · {len(fal):,} 'Fans\nalso like' edges · titles, bios, covers"),
-        (yH + 1.0, f"{own['n_houses']} ISRC houses",
-         "who registered the recording; from the ISRC\n(matched on Deezer) · plus credit Source, (P) line"),
-    ]
-    for y, title, sub in blocks:
-        ax.text(col - 12.5, y + 2.6, title, fontsize=6.4, fontweight="bold", color=TEXT, va="center")
-        ax.text(col - 12.5, y + 0.9, sub, fontsize=5.3, color=TEXT_2, va="top", linespacing=1.3)
-
-    # legend
-    ax.scatter([], [], s=13, c=GHOST, label="ghost-like name")
-    ax.scatter([], [], s=13, c=REAL, label="real artist")
-    ax.scatter([], [], s=30, marker="s", c="#3d3c38", label="functional playlist")
-    ax.scatter([], [], s=30, marker="s", c=GENRE_C, label="genre playlist")
-    ax.legend(loc="lower center", bbox_to_anchor=(0.32, -0.13), ncol=4, fontsize=5.8,
-              handletextpad=0.2, columnspacing=1.2)
-    ax.text(1, 39.5, "Schematic (counts are real)", fontsize=5.2, color=TEXT_2, style="italic")
+    # column heads
+    heads = [("kind", "Playlist", "50 Spotify editorial playlists"),
+             ("label", "Artist name on the slot", "5,024 names, flagged by the rule"),
+             ("house", "Who registered the recording", "the house, from the track's ISRC code")]
+    for c, h1, h2 in heads:
+        x = X[c] + W / 2
+        ha = "center"
+        if c == "kind":
+            x, ha = X[c] + W, "right"
+        if c == "house":
+            x, ha = X[c], "left"
+        ax.text(x, 1.035, h1, ha=ha, va="bottom", fontsize=7, fontweight="bold", color=TEXT)
+        ax.text(x, 1.035, h2, ha=ha, va="top", fontsize=fs, color=TEXT_2)
+    ax.text(0.5, -0.045, "Band width = number of playlist slots (9,004). Also collected: each name's profile, bio and "
+            "'Fans also like' list; each track's credits, cover art and 30-second preview.",
+            ha="center", va="top", fontsize=fs, color=TEXT_2)
     style.save(fig, "fig1_data")
 
 

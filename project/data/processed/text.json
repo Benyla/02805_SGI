@@ -1,96 +1,97 @@
 {
  "auc_name": {
-  "auc": 0.5677423915307025,
-  "null_mean": 0.5007689598992385,
-  "null_sd": 0.012551926182105518,
+  "auc": 0.60966196408772,
+  "null_mean": 0.49736560337464,
+  "null_sd": 0.011539515013019374,
   "n": 4530,
-  "n_ghost": 2653
+  "n_ghost": 3156
  },
  "auc_titles": {
-  "auc": 0.598277580431357,
-  "null_mean": 0.5002325701184474,
-  "null_sd": 0.011918470543338753,
+  "auc": 0.6334633506935798,
+  "null_mean": 0.49643787485494695,
+  "null_sd": 0.00820995609765311,
   "n": 4530,
-  "n_ghost": 2653
+  "n_ghost": 3156
  },
  "auc_bio": {
-  "auc": 0.8678944239686125,
-  "null_mean": 0.5029399595767446,
-  "null_sd": 0.018722099197610163,
+  "auc": 0.8922645533141209,
+  "null_mean": 0.49986792507204614,
+  "null_sd": 0.01510039693632736,
   "n": 1944,
-  "n_ghost": 650
+  "n_ghost": 694
  },
+ "auc_bio_length": 0.8028023054755042,
  "bio_presence": {
-  "ghost": 0.24500565397663024,
-  "real": 0.6893979754928077
+  "ghost": 0.21989860583016477,
+  "real": 0.9097525473071325
  },
  "bio_entities_per_100_tokens": {
   "False": {
-   "PERSON": 2.843,
-   "PLACE": 1.421,
-   "DATE": 2.088,
-   "ORG": 2.195
+   "PERSON": 2.854,
+   "PLACE": 1.436,
+   "DATE": 2.113,
+   "ORG": 2.219
   },
   "True": {
-   "PERSON": 0.774,
-   "PLACE": 0.76,
-   "DATE": 0.622,
-   "ORG": 0.622
+   "PERSON": 0.738,
+   "PLACE": 0.639,
+   "DATE": 0.437,
+   "ORG": 0.444
   }
  },
  "bio_any_entity": {
-  "False": 0.857032457496136,
-  "True": 0.4338461538461538
+  "False": 0.8768,
+  "True": 0.4250720461095101
  },
  "bio_median_tokens": {
-  "False": 133.0,
+  "False": 145.5,
   "True": 32.0
  },
  "bio_words_ghost": [
+  "quiet",
   "calm",
   "gentle",
-  "quiet",
-  "stillness",
-  "creates",
-  "soft",
-  "relaxation",
   "slow",
+  "stillness",
+  "soft",
+  "creates",
   "space",
-  "designed",
-  "ambient",
-  "textures",
   "soundscapes",
-  "deep",
-  "focus"
+  "sleep",
+  "ambient",
+  "relaxation",
+  "focus",
+  "moments",
+  "textures"
  ],
  "bio_words_real": [
   "album",
-  "released",
   "orchestra",
+  "released",
   "year",
   "works",
   "including",
   "recording",
   "label",
-  "albums",
-  "conductor",
-  "recordings",
-  "debut",
   "symphony",
+  "debut",
+  "albums",
   "later",
-  "performed"
+  "international",
+  "conductor",
+  "concert"
  ],
  "person_like_name": {
-  "ghost": 0.5858433734939759,
-  "real_functional": 0.5769845498135322,
+  "ghost": 0.5845425867507886,
+  "real_functional": 0.5756914119359534,
   "genre": 0.48884381338742394
  },
  "title_reused_by_other_name": {
-  "False": 0.11954165376277485,
-  "True": 0.14370888157894737
+  "False": 0.12686868686868688,
+  "True": 0.1372374510501958
  },
  "title_words_mean": {
-  "False": 2.4437906472592132,
-  "True": 1.9755345394736843
+  "False": 2.5155555555555558,
+  "True": 2.0067639729441082
  }
 }

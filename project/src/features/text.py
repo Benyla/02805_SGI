@@ -85,6 +85,9 @@ def main() -> None:
     fb = f[has]
     bios = [clean_bio(b, n) for b, n in zip(bio[has], fb.name)]
     out["auc_bio"] = _auc(bios, fb.ghost.to_numpy(int), ngram_range=(1, 2))
+    # baseline: how far does bio length alone get? (shorter = more ghost-like)
+    lens = np.array([len(b.split()) for b in bios])
+    out["auc_bio_length"] = float(roc_auc_score(fb.ghost.to_numpy(int), -lens))
     out["bio_presence"] = {"ghost": float(has[f.ghost].mean()), "real": float(has[~f.ghost].mean())}
 
     # 2. named entities in bios

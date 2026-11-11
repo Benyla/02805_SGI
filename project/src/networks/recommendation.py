@@ -78,6 +78,9 @@ def null_tests(E: pd.DataFrame, df: pd.DataFrame, home: pd.Series, rng) -> dict:
             "same_ratio": obs_same / same.mean(), "same_z": (obs_same - same.mean()) / same.std(),
             "same_p": float((np.sum(same >= obs_same) + 1) / (N_NULL + 1)),
             "same_samples": same.tolist(),
+            # the null's own 95% range, in the same "observed / expected" units as the ratios
+            "flows_null_range": np.percentile(flows / flows.mean(0), [2.5, 97.5], axis=0).T.tolist(),
+            "same_null_range": np.percentile(same / same.mean(), [2.5, 97.5]).tolist(),
             "flows_samples_ratio": (flows / flows.mean(0)).tolist()[:N_NULL],
         }
     return out
@@ -109,7 +112,7 @@ def communities(E: pd.DataFrame, df: pd.DataFrame, home: pd.Series, rng) -> dict
         null = [nmi(c, rng.permutation(l.to_numpy())) for _ in range(100)]
         res[k] = {"nmi": obs, "null_mean": float(np.mean(null)), "null_sd": float(np.std(null))}
     memb.to_csv(PROCESSED / "fal_communities.csv")
-    return {"n_nodes": g.vcount(), "n_edges_undirected": g.ecount(),
+    return {"n_nodes": g.vcount(), "n_giant": int(max(g.connected_components().sizes())), "n_edges_undirected": g.ecount(),
             "n_communities": len(part), "modularity": part.modularity,
             "modularity_null_mean": float(np.mean(q_null)), "modularity_null_sd": float(np.std(q_null)),
             "nmi": res}

@@ -9,7 +9,8 @@ Three company fields per track ("houses"):
 
 House size = number of distinct *primary* artist names on tracks carrying that key.
 (Primary only, so classical tracks crediting Bach + three performers do not inflate
-the label's name count.)
+the label's name count.) For the registrant, the paper's definition is stricter: the number
+of names whose *dominant* registrant it is (see artist_production).
 """
 from __future__ import annotations
 
@@ -66,6 +67,14 @@ def artist_production() -> pd.DataFrame:
         dom = g[k].agg(_mode)
         out[f"{k}_dom"] = dom
         out[f"{k}_house_size"] = dom.map(sizes[k]).astype("float")
+    # The registrant ("house") uses ONE definition everywhere in the paper: a name's house is
+    # the registrant of most of the tracks where it is the primary artist, and a house's size
+    # is the number of names whose house it is.
+    p = t.dropna(subset=["registrant"]).groupby(["primary_artist", "registrant"]).size()
+    p = p.reset_index(name="n").sort_values(["n", "registrant"], ascending=[False, True])
+    dom = p.drop_duplicates("primary_artist").set_index("primary_artist").registrant
+    out["registrant_dom"] = dom.reindex(out.index).astype("string")
+    out["registrant_house_size"] = out.registrant_dom.map(dom.value_counts()).astype("float")
     out["source_dom_raw"] = g.source_raw.agg(_mode)
     out["pline_dom_raw"] = g.pline_owner_raw.agg(_mode)
     # largest house the name belongs to, over the three fields

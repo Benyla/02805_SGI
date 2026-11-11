@@ -108,11 +108,10 @@ def panel_network(ax) -> None:
     lab = pd.DataFrame({"c": cvec, "x": xy[:, 0], "y": xy[:, 1], "g": ghost,
                         "home": home.reindex(names).to_numpy()})
     stats = []
-    for c in lab.c.value_counts().index[:10]:
+    for c in lab.c.value_counts().index[:8]:
         d = lab[lab.c == c]
         top = d.home.value_counts()
-        txt = top.index[0] if top.iloc[0] / len(d) > 0.35 else f"{top.index[0]} +"
-        stats.append((d.x.median(), d.y.median(), f"{txt}\n{len(d)} names · {d.g.mean():.0%} ghost-like"))
+        stats.append((d.x.median(), d.y.median(), f"{top.index[0].strip()}\n{len(d)} names · {d.g.mean():.0%} ghost-like"))
     xmin, xmax = xy[:, 0].min(), xy[:, 0].max()
     cx = np.median(xy[:, 0])
     span = xy[:, 1].max() - xy[:, 1].min()
@@ -120,53 +119,92 @@ def panel_network(ax) -> None:
         S = sorted([t for t in stats if (t[0] < cx) == (side == "left")], key=lambda t: -t[1])
         ys = [t[1] for t in S]
         for k in range(1, len(ys)):
-            ys[k] = min(ys[k], ys[k - 1] - span * 0.155)
+            ys[k] = min(ys[k], ys[k - 1] - span * 0.17)
         if S:
             shift = np.mean([t[1] for t in S]) - np.mean(ys)
             ys = [y + shift for y in ys]
         lx = xmin - span * 0.04 if side == "left" else xmax + span * 0.04
         for (x, y, txt), ly in zip(S, ys):
             ax.plot([x, lx], [y, ly], color=TEXT_2, lw=0.45, zorder=3)
-            ax.text(lx + (-0.5 if side == "left" else 0.5), ly, txt, fontsize=4.8,
+            ax.text(lx + (-0.5 if side == "left" else 0.5), ly, txt, fontsize=6.5,
                     ha="right" if side == "left" else "left", va="center", color=TEXT, zorder=4,
                     linespacing=1.15)
-    ax.set_xlim(xmin - span * 0.36, xmax + span * 0.36)
+    ax.set_xlim(xmin - span * 0.5, xmax + span * 0.5)
     ax.set_aspect("equal", adjustable="datalim")
     ax.axis("off")
     ax.scatter([], [], s=9, c=GHOST, label="ghost-like name")
     ax.scatter([], [], s=9, c=REAL, label="real artist")
-    ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.05), ncol=2, fontsize=5.8, handletextpad=0.1)
-    ax.set_title("A  'Fans also like' among the 5,024 names", loc="left")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 0.03), ncol=2, fontsize=6.5, handletextpad=0.1)
+    ax.set_title("A  Each cluster of similar artists is a playlist", loc="left")
+    ax.text(0.5, -0.06, "Dots: artist names. Lines: 'Fans also like' links. Text: the playlist most\n"
+            "of a cluster's names come from. Largest connected group of names shown.",
+            transform=ax.transAxes, ha="center", va="top", fontsize=6.5, color=TEXT_2)
 
 
 def panel_nulls(ax) -> None:
     r = json.loads((PROCESSED / "recommendation.json").read_text())["nulls"]
-    rows = [("real to ghost-like", 1), ("ghost-like to real", 2), ("ghost-like to ghost-like", 3),
-            ("real to real", 0)]
-    labels = [lab for lab, _ in rows] + ["same ISRC house"]
-    y = np.arange(len(labels))[::-1]
-    for k, (null, marker, fc, dy) in enumerate([("degree", "o", "white", 0.13),
-                                                ("playlist", "o", TEXT, -0.13)]):
-        vals = [r[null]["flows_ratio"][i] for _, i in rows] + [r[null]["same_ratio"]]
-        zs = [r[null]["flows_z"][i] for _, i in rows] + [r[null]["same_z"]]
-        ax.scatter(vals, y + dy, s=16, marker=marker, facecolor=fc, edgecolor=TEXT, lw=0.8, zorder=3,
-                   label={"degree": "null: degrees kept", "playlist": "null: degrees + playlists kept"}[null])
-        for v, yy in zip(vals, y + dy):
-            ax.plot([1, v], [yy, yy], color=NEUTRAL, lw=0.7, zorder=2)
-    ax.axvline(1, color=TEXT_2, lw=0.6)
+    rows = [("a real artist's page lists\na ghost-like name", "flows", 1),
+            ("a ghost-like name's page\nlists a real artist", "flows", 2),
+            ("both names come from\nthe same house", "same", None)]
+    y = np.array([2.2, 1.2, 0.0])  # gap before the "same house" row
+    lo = min(min(r[n]["flows_null_range"][i][0] for n in ("degree", "playlist") for i in (1, 2)),
+             min(r[n]["same_null_range"][0] for n in ("degree", "playlist")))
+    hi = max(max(r[n]["flows_null_range"][i][1] for n in ("degree", "playlist") for i in (1, 2)),
+             max(r[n]["same_null_range"][1] for n in ("degree", "playlist")))
+    ax.axvspan(lo, hi, color="#e4e3df", lw=0, zorder=0)
+    ax.axvline(1, color=TEXT_2, lw=0.6, zorder=1)
+    for (lab, kind, i), yi in zip(rows, y):
+        for null, fc, dy in [("degree", "white", 0.15), ("playlist", TEXT, -0.15)]:
+            v = r[null]["flows_ratio"][i] if kind == "flows" else r[null]["same_ratio"]
+            ax.plot([1, v], [yi + dy, yi + dy], color=NEUTRAL, lw=0.8, zorder=2)
+            ax.scatter([v], [yi + dy], s=22, facecolor=fc, edgecolor=TEXT, lw=0.8, zorder=3)
+            ax.text(v * (1.06 if v > 1 else 0.94), yi + dy, f"{v:.2f}×", va="center",
+                    ha="left" if v > 1 else "right", fontsize=6.5, color=TEXT)
     ax.set_xscale("log")
-    ax.set_xlim(0.42, 3.6)
-    ax.set_xticks([0.5, 1, 2], ["0.5×", "1×", "2×"])
-    ax.xaxis.set_minor_formatter(plt.NullFormatter())
-    ax.set_yticks(y, labels, fontsize=5.8)
-    ax.set_ylim(-0.6, len(labels) - 0.4)
-    ax.grid(axis="y", visible=False)
-    ax.set_xlabel("Observed / expected edges")
-    ax.text(0.46, -0.45, "fewer than chance", fontsize=5, color=TEXT_2)
-    ax.text(3.4, -0.45, "more than chance", fontsize=5, color=TEXT_2, ha="right")
-    ax.legend(loc="upper center", bbox_to_anchor=(0.45, 1.13), fontsize=5.3, ncol=2,
-              handletextpad=0.1, columnspacing=0.6)
-    ax.set_title("B  Who is recommended next to whom", loc="left", pad=14)
+    ax.set_xlim(0.33, 3.6)
+    ax.set_xticks([0.5, 1, 2], ["0.5×", "1×", "2×"], fontsize=6.5)
+    ax.set_xlabel("Observed links ÷ links expected by chance", fontsize=6.5)
+    ax.xaxis.set_minor_locator(plt.NullLocator())
+    ax.set_yticks(y, [lab for lab, _, _ in rows], fontsize=6.5)
+    ax.set_ylim(-1.05, 2.5)
+    ax.grid(False)
+    ax.tick_params(axis="y", length=0)
+    ax.spines["left"].set_visible(False)
+    ax.scatter([], [], s=22, facecolor="white", edgecolor=TEXT, lw=0.8, label="vs shuffle 1")
+    ax.scatter([], [], s=22, facecolor=TEXT, edgecolor=TEXT, lw=0.8, label="vs shuffle 2")
+    ax.fill_between([], [], color="#e4e3df", label="range of chance")
+    ax.legend(loc="lower left", bbox_to_anchor=(0.0, -0.02), ncol=3, fontsize=6.5, handletextpad=0.3, columnspacing=0.8,
+              labelspacing=0.3)
+    ax.set_title("C  How often each kind of link appears", loc="left")
+
+
+def panel_explainer(ax) -> None:
+    """Three tiny diagrams: observed links, shuffle 1 (any target), shuffle 2 (same playlist only)."""
+    ax.set_xlim(0, 9.3)
+    ax.set_ylim(-0.12, 1.12)
+    ax.axis("off")
+    # two playlists, three names each (orange = ghost-like, blue = real)
+    pts = np.array([[0.12, 0.75], [0.38, 0.4], [0.12, 0.08], [0.72, 0.78], [0.95, 0.42], [0.7, 0.08]])
+    col = [GHOST] * 3 + [REAL] * 3
+    obs = [(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3), (1, 4)]
+    shuf1 = [(0, 4), (1, 5), (2, 1), (3, 0), (4, 2), (5, 3), (1, 3)]
+    shuf2 = [(0, 2), (1, 0), (2, 1), (3, 5), (4, 3), (5, 4), (1, 3)]
+    texts = ["Observed: the real 'Fans also\nlike' links between names on\ntwo playlists, A and B.",
+             "Shuffle 1: every page keeps\nits number of links, but who\nis listed is random.",
+             "Shuffle 2: as shuffle 1, but a\nlink may only swap with another\nlink into the same playlist."]
+    for k, (E, txt) in enumerate(zip([obs, shuf1, shuf2], texts)):
+        ox = k * 3.15
+        for x0 in (0.0, 0.6):
+            ax.add_patch(plt.Rectangle((ox + x0 - 0.02, -0.06), 0.47, 1.0, fc="#f4f3f0", ec="none", zorder=0))
+        for i, j in E:
+            ax.annotate("", xy=pts[j] + [ox, 0], xytext=pts[i] + [ox, 0],
+                        arrowprops=dict(arrowstyle="-|>", color="#6f6e69", lw=0.6, shrinkA=3, shrinkB=3,
+                                        mutation_scale=5, connectionstyle="arc3,rad=0.15"))
+        ax.scatter(pts[:, 0] + ox, pts[:, 1], s=14, c=col, zorder=3, lw=0.4, ec="white")
+        ax.text(ox + 0.2, 0.97, "A", fontsize=6.5, color=TEXT_2, ha="center", va="bottom")
+        ax.text(ox + 0.82, 0.97, "B", fontsize=6.5, color=TEXT_2, ha="center", va="bottom")
+        ax.text(ox + 1.12, 0.45, txt, ha="left", va="center", fontsize=6.5, color=TEXT, linespacing=1.2)
+    ax.set_title("B  The two shuffles used as 'chance' in C", loc="left")
 
 
 def panel_nmi(ax) -> None:
@@ -176,27 +214,27 @@ def panel_nmi(ax) -> None:
     obs = [v["nmi"] for _, v in items]
     nul = [v["null_mean"] for _, v in items]
     ax.barh(y, obs, color="#3d3c38", height=0.55, label="observed")
-    ax.barh(y, nul, color="white", height=0.55, ec="#3d3c38", lw=0.6, hatch="//////", label="shuffled null")
+    ax.barh(y, nul, color="#c9c8c2", height=0.55, lw=0, label="labels shuffled")
     for yi, o in zip(y, obs):
-        ax.text(o + 0.02, yi, f"{o:.2f}", va="center", fontsize=5.6, color=TEXT)
-    ax.set_yticks(y, [k for k, _ in items], fontsize=5.8)
-    ax.set_xlim(0, 0.9)
-    ax.set_xlabel("NMI with recommender communities")
+        ax.text(o + 0.02, yi, f"{o:.2f}", va="center", fontsize=6.5, color=TEXT)
+    ax.set_yticks(y, ["home playlist", "house", "ghost-like label"], fontsize=6.5)
+    ax.set_xlim(0, 0.8)
+    ax.set_xlabel("Overlap with the clusters (NMI: 0 none, 1 identical)", fontsize=6.5)
     ax.grid(axis="y", visible=False)
-    ax.legend(loc="lower right", fontsize=5.3)
-    ax.set_title(f"C  Communities follow playlists", loc="left")
-    ax.text(0.98, 0.6, f"Louvain Q = {c['modularity']:.2f}\n(rewired: {c['modularity_null_mean']:.2f})",
-            transform=ax.transAxes, ha="right", va="center", fontsize=5.3, color=TEXT_2)
+    ax.tick_params(axis="y", length=0)
+    ax.legend(loc="lower right", fontsize=6.5, bbox_to_anchor=(1.0, 0.0))
+    ax.set_title("D  Clusters match playlists, not houses", loc="left")
 
 
 def main() -> None:
     style.apply()
-    fig = plt.figure(figsize=(7.08, 3.05))
-    gs = fig.add_gridspec(2, 2, width_ratios=[1.45, 1.0], height_ratios=[1.45, 1.0],
-                          wspace=0.75, hspace=0.75)
-    panel_network(fig.add_subplot(gs[:, 0]))
+    fig = plt.figure(figsize=(7.08, 5.0))
+    gs = fig.add_gridspec(3, 2, width_ratios=[1.3, 1.0], height_ratios=[1.0, 0.62, 0.42],
+                          wspace=0.85, hspace=0.85)
+    panel_network(fig.add_subplot(gs[0:2, 0]))
     panel_nulls(fig.add_subplot(gs[0, 1]))
     panel_nmi(fig.add_subplot(gs[1, 1]))
+    panel_explainer(fig.add_subplot(gs[2, :]))
     style.save(fig, "fig4_recommender")
 
 

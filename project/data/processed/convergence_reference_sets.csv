@@ -1,8 +1,5 @@
-set,name,n_artists,share_ghost
-known supplier,Firefly Entertainment,50,0.94
-known supplier,Epidemic Sound,40,0.0
-classical major,Deutsche Grammophon,81,0.0
-classical major,Decca,81,0.0
-classical major,Sony Classical,62,0.0
-classical major,Warner Classics,54,0.05555555555555555
-genre playlists,all 5 genre playlists,493,0.006085192697768763
+name,n_artists,share_ghost
+Firefly Entertainment,50,0.9
+Epidemic Sound,40,0.1
+Classical majors,278,0.17985611510791366
+Genre-playlist artists,493,0.028397565922920892
