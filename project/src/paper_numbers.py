@@ -81,6 +81,14 @@ def main() -> None:
         m[f"prof{tag}Alias"] = pct(p.alias_only_tracks)
         m[f"prof{tag}Self"] = pct(p.self_labelled)
 
+    sens = pd.read_csv(PROCESSED / "convergence_sensitivity.csv").set_index("rule")
+    for key, tag in [("at least 3 missing", "Three"), ("all 5 missing", "Five"),
+                     ("rule corrected by followers per listener", "Fpl")]:
+        m[f"sens{tag}Slots"] = pct(sens.loc[key, "slot_share"])
+        m[f"sens{tag}Firefly"] = pct(sens.loc[key, "firefly"])
+        m[f"sens{tag}Majors"] = pct(sens.loc[key, "majors"])
+    m["realLowFpl"] = pct(((f.followers / f.monthly_listeners * 1000) <= 1.4)[~f.ghost].mean())
+
     # ---- placement
     m["slotGhostF"] = pct(own["functional_slot_ghost_share"])
     m["slotGhostG"] = pct(own["genre_slot_ghost_share"])
@@ -151,6 +159,10 @@ def main() -> None:
     m["tokReal"] = num(txt["bio_median_tokens"]["False"])
     m["personGhost"] = pct(txt["person_like_name"]["ghost"])
     m["personRealF"] = pct(txt["person_like_name"]["real_functional"])
+    m["titleReuseGhost"] = pct(txt["title_reused_by_other_name"]["True"])
+    m["titleReuseReal"] = pct(txt["title_reused_by_other_name"]["False"])
+    m["titleWordsGhost"] = f"{txt['title_words_mean']['True']:.1f}"
+    m["titleWordsReal"] = f"{txt['title_words_mean']['False']:.1f}"
     m["coverSameHouse"] = pct(vis["cover_nn_same_house"]["observed"])
     m["coverSameHouseNull"] = pct(vis["cover_nn_same_house"]["null_mean"])
 

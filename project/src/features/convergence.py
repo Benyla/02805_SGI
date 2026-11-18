@@ -53,6 +53,34 @@ def profile(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("group")
 
 
+def sensitivity(df: pd.DataFrame) -> pd.DataFrame:
+    """How much the headline depends on where the line is drawn. Alternative definitions:
+    3, 4 (the rule) or 5 of 5 markers missing, and the rule corrected by followers per listener
+    (flagged names with >= 25 followers per 1,000 listeners un-flagged; unflagged names with
+    <= 1.4 flagged; the medians of real and flagged names in Table 1)."""
+    from src.common import placement
+
+    pa = placement()
+    pa = pa[pa.is_primary & (pa.group == "functional")]
+    src = df.source_dom_raw.fillna("")
+    majors = src.str.contains("|".join(CLASSICAL_MAJORS), case=False)
+    k = (df.identity_score * 5).round()
+    fpl = 1000 * df.followers / df.monthly_listeners.where(df.monthly_listeners > 0)
+    corrected = df.ghost.copy()
+    corrected[df.ghost & (fpl >= 25)] = False
+    corrected[~df.ghost & (fpl <= 1.4)] = True
+    rules = {"at least 3 missing": k >= 3, "at least 4 missing (the rule)": k >= 4,
+             "all 5 missing": k >= 5, "rule corrected by followers per listener": corrected}
+    rows = []
+    for name, lab in rules.items():
+        lab = lab.astype(bool)
+        rows.append({"rule": name, "n": int(lab.sum()),
+                     "slot_share": float(pa.artist_id.map(lab).mean()),
+                     "firefly": float(lab[src.str.contains("Firefly", regex=False)].mean()),
+                     "majors": float(lab[majors].mean())})
+    return pd.DataFrame(rows)
+
+
 def main() -> None:
     path = PROCESSED / "artist_features.parquet"
     df = pd.read_parquet(path)
@@ -63,6 +91,8 @@ def main() -> None:
     ref.to_csv(PROCESSED / "convergence_reference_sets.csv", index=False)
     prof = profile(df)
     prof.to_csv(PROCESSED / "convergence_profile.csv")
+    sens = sensitivity(df)
+    sens.to_csv(PROCESSED / "convergence_sensitivity.csv", index=False)
 
     lines = [
         "# Ghost-like names",
@@ -80,6 +110,10 @@ def main() -> None:
         "## Flagged and not flagged names on the same (functional) playlists",
         "",
         prof.round(3).to_markdown(),
+        "",
+        "## How much the definition matters",
+        "",
+        sens.round(3).to_markdown(index=False),
     ]
     (PROJECT / "notes" / "convergence.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))

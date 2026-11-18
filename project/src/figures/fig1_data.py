@@ -75,18 +75,18 @@ def band(ax, x0, y0, x1, y1, h, color, alpha) -> None:
              (x0, y0)]
     codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.LINETO, Path.CURVE4, Path.CURVE4,
              Path.CURVE4, Path.CLOSEPOLY]
-    ax.add_patch(PathPatch(Path(verts, codes), fc=color, ec="none", alpha=alpha, zorder=1))
+    ax.add_patch(PathPatch(Path(verts, codes), fc=color, ec="white", lw=0.35, alpha=alpha, zorder=1))
 
 
 def main() -> None:
     style.apply()
     pa = slots()
     N = len(pa)
-    scale = 0.86 / N  # share of the vertical space taken by bars; the rest is gaps
+    scale = 0.82 / N  # share of the vertical space taken by bars; the rest is gaps
     cols = {
         "kind": (list(KINDS) + [GENRE], 0.022),
         "label": (["ghost", "real"], 0.03),
-        "house": ([f"House {k}" for k in range(1, 9)] + [OTHER, NOCODE], 0.008),
+        "house": ([f"House {k}" for k in range(1, 9)] + [OTHER, NOCODE], 0.017),
     }
     X = {"kind": 0.25, "label": 0.46, "house": 0.715}
     W = 0.012
@@ -110,7 +110,7 @@ def main() -> None:
         for (s, t) in sorted(flows.index, key=lambda st: (cols[a][0].index(st[0]), cols[b][0].index(st[1]))):
             h = flows[(s, t)]
             # sorted source-first, so bands arrive at each target in source order
-            band(ax, X[a] + W, out_y[s], X[b], in_y[t], h, lab_col[t if col_by == b else s], 0.42)
+            band(ax, X[a] + W, out_y[s], X[b], in_y[t], h, lab_col[t if col_by == b else s], 0.8)
             out_y[s] -= h
             in_y[t] -= h
     # nodes
@@ -133,12 +133,12 @@ def main() -> None:
     # middle labels
     n_lab = pa.groupby("label").size()
     mood = pa[pa.group == "functional"].label.value_counts(normalize=True)
-    for k, txt in [("ghost", "ghost-like names"), ("real", "real artists")]:
+    for k, txt in [("ghost", "Ghost-like names"), ("real", "Real artists")]:
         yt, yb = pos["label"][k]
         ax.text(X["label"] + W + 0.008, yt - 0.012,
                 f"{txt}\n{n_lab[k]:,} slots\n{mood[k]:.0%} of mood-playlist slots",
-                ha="left", va="top", fontsize=fs, color=lab_col[k], fontweight="bold", linespacing=1.2,
-                bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85), zorder=4)
+                ha="left", va="top", fontsize=fs, color=TEXT, linespacing=1.25,
+                bbox=dict(fc="white", ec=lab_col[k], lw=0.8, boxstyle="round,pad=0.35"), zorder=4)
     # right labels
     comp = company()
     names = {v: k for k, v in display_names().items()}
@@ -150,12 +150,12 @@ def main() -> None:
             txt = f"{k}  {names[k]} · {co}  ({n_h[k]:,})"
         else:
             txt = f"{k}  ({n_h[k]:,})"
-        ax.text(X["house"] + W + 0.008, (yt + yb) / 2, txt, ha="left", va="center", fontsize=fs - 0.3,
+        ax.text(X["house"] + W + 0.008, (yt + yb) / 2, txt, ha="left", va="center", fontsize=fs,
                 color=TEXT if k.startswith("House") else TEXT_2)
 
     # column heads
     heads = [("kind", "Playlist", "50 Spotify editorial playlists"),
-             ("label", "Artist name on the slot", "5,024 names, flagged by the rule"),
+             ("label", "Artist name on the slot", ""),
              ("house", "Who registered the recording", "the house, from the track's ISRC code")]
     for c, h1, h2 in heads:
         x = X[c] + W / 2
@@ -166,6 +166,11 @@ def main() -> None:
             x, ha = X[c], "left"
         ax.text(x, 1.035, h1, ha=ha, va="bottom", fontsize=7, fontweight="bold", color=TEXT)
         ax.text(x, 1.035, h2, ha=ha, va="top", fontsize=fs, color=TEXT_2)
+    # colour key under the middle heading: what orange and blue mean, used in every figure
+    xm = X["label"] + W / 2
+    for y, col, lab in [(1.013, GHOST, "ghost-like name"), (0.983, REAL, "real artist")]:
+        ax.add_patch(Rectangle((xm - 0.075, y - 0.011), 0.011, 0.022, fc=col, ec="none", clip_on=False))
+        ax.text(xm - 0.06, y, lab, ha="left", va="center", fontsize=fs, color=TEXT)
     ax.text(0.5, -0.045, "Band width = number of playlist slots (9,004). Also collected: each name's profile, bio and "
             "'Fans also like' list; each track's credits, cover art and 30-second preview.",
             ha="center", va="top", fontsize=fs, color=TEXT_2)

@@ -19,3 +19,12 @@ A name is ghost-like if it lacks at least 4 of 5 identity markers (verified, bio
 |:------------|-----:|--------------------:|-------------------------------:|--------------------:|----------------:|
 | flagged     | 3156 |                 222 |                          1.441 |               0.858 |           0.55  |
 | not flagged | 1374 |                  10 |                         25.461 |               0.448 |           0.132 |
+
+## How much the definition matters
+
+| rule                                     |    n |   slot_share |   firefly |   majors |
+|:-----------------------------------------|-----:|-------------:|----------:|---------:|
+| at least 3 missing                       | 3503 |        0.831 |      0.98 |    0.252 |
+| at least 4 missing (the rule)            | 3170 |        0.748 |      0.9  |    0.18  |
+| all 5 missing                            | 2205 |        0.507 |      0.64 |    0.047 |
+| rule corrected by followers per listener | 3168 |        0.78  |      0.82 |    0.14  |
