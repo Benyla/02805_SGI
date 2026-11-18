@@ -49,9 +49,18 @@ Spotify's mood playlists are said to be filled with cheap stock music released u
 \ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
 
 % =====================================================================================
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{fig1_data.pdf}
+\caption{\textbf{Where the playlist slots go.} Every band is a count from the data; its width is the number of playlist slots. Left: the \nPlaylists{} playlists, grouped by what they are for. Middle: whether the name on the slot is ghost-like (orange) or real (blue). Right: who registered the slot's recording, from its ISRC code. Houses are numbered by the number of mood-playlist slots they registered. ``No recording code'': the track was not found on Deezer.}
+\label{fig:data}
+\end{figure*}
+
 \dropcap{P}laylists with names like \emph{Deep Focus}, \emph{Sleep} or \emph{Jazz in the Background} are among the most followed on Spotify, and placement on them is worth millions of streams~\cite{aguiar2021platforms,eriksson2019teardown}. Journalists have reported that much of this music is not made by the artists it is credited to. Pelly describes an internal Spotify programme, ``Perfect Fit Content'', in which production companies supply cheap background music for editorial playlists~\cite{pelly2025harpers,pelly2025mood}. In 2022 the Swedish newspaper \emph{Dagens Nyheter} (DN) obtained a list of 830 artist names linked to one company, Firefly Entertainment; at least 495 of them were on Spotify's own playlists, and music for more than 500 of the names came from about 20 songwriters~\cite{ingham2022mbw}. A later DN story traced one composer behind more than 650 names, released through Overtone Studios, a label owned by Epidemic Sound~\cite{stassen2024mbw}. The question matters more as generative AI lowers the cost of such catalogues: in July 2026 Deezer reported that more than half of its daily uploads were fully AI-generated~\cite{techcrunch2026deezer}.
 
-This reporting rests on leaked lists and interviews. We ask what can be seen from public data alone, with the tools of network science. We answer three questions in turn. \emph{Who is on the playlists?} \emph{Who makes the music?} \emph{Where does Spotify's recommender put it?}
+This reporting rests on leaked lists and interviews. We ask what can be seen from public data alone, with the tools of network science. Two networks do most of the work. The first connects artist names to the organisations that registered their recordings; if many names share one registrant, the network shows it, whatever the credits say. The second is Spotify's own ``Fans also like'' network, which we compare with shuffled versions of itself to see which links are more common than chance.
+
+The question matters beyond curiosity. Streaming royalties are shared out in proportion to streams, so every stream to a catalogue name on a mood playlist is a stream that does not go to another artist. Listeners, too, may care whether the ``artist'' they hear exists. We answer three questions in turn. \emph{Who is on the playlists?} \emph{Who makes the music?} \emph{Where does Spotify's recommender put it?}
 
 % =====================================================================================
 \section*{Data and how we flag a ghost-like name}
@@ -67,12 +76,7 @@ We matched tracks to Deezer to get each recording's ISRC, an international code 
 \textbf{Why this rule.} We chose the rule for three reasons. It uses only what any listener can see on an artist's page. It is one sentence, so every flag can be checked by hand. And it leaves out everything we want to test: who made the music, how it is listened to, and how it is recommended. If the flag used listening or production data, finding that ghost-like names have no fans or share a house would be true by construction. The price is that the rule makes errors, in both directions. It flags some real musicians with thin profiles, such as the classical names above. It misses ghost-like names that carry a short mood bio and a photo: \realLowFpl{} of the names it calls real have a ghost's listening pattern (a few hundred followers for up to a million listeners) and come from the same large houses. We do not correct these errors with listening data, for the reason just given. Both errors work against our results: the missed names sit in the largest houses, and the wrongly flagged ones in small houses. Correcting both with followers per listener would raise the share of mood-playlist slots held by ghost-like names from \slotGhostF{} to \sensFplSlots{}. Moving the line itself matters more: requiring three missing markers gives \sensThreeSlots{}, requiring all five \sensFiveSlots{}, but the first also flags \sensThreeMajors{} of classical-major names and the second catches only \sensFiveFirefly{} of Firefly's. The direction of every result is the same under each, and the house concentration in Results section 2 is measured without any flag.
 
 % =====================================================================================
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\linewidth]{fig1_data.pdf}
-\caption{\textbf{Where the playlist slots go.} Every band is a count from the data; its width is the number of playlist slots. Left: the \nPlaylists{} playlists, grouped by what they are for. Middle: whether the name on the slot is ghost-like (orange) or real (blue). Right: who registered the slot's recording, from its ISRC code. Houses are numbered by the number of mood-playlist slots they registered. ``No recording code'': the track was not found on Deezer.}
-\label{fig:data}
-\end{figure*}
+
 
 \begin{figure}[tb]
 \centering
@@ -80,6 +84,13 @@ We matched tracks to Deezer to get each recording's ISRC, an international code 
 \caption{\textbf{The flag passes checks it never saw.} Share of names flagged ghost-like in four groups, matched by the label in the credits. Dashed line: all names on the mood playlists.}
 \label{fig:checks}
 \end{figure}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{fig3_ownership.pdf}
+\caption{\textbf{Hundreds of artist names, eight houses.} (\emph{A}) Each dark node is a house; the dots around it are the artist names whose tracks it registered, so disc area shows the number of names. Houses are numbered as in Fig.~\ref{fig:data}. Blue dots inside the large houses are names that happen to have a written bio; on everything else they resemble their neighbours. (\emph{B}) Share of playlist slots by who registered the slot's track: each kind of playlist's own eight largest houses, all other houses, or no code. No ghost-like flag is used in B.}
+\label{fig:ownership}
+\end{figure*}
 
 \section*{Results}
 
@@ -106,27 +117,31 @@ Name listed as its own label & \profGSelf & \profRSelf \\
 
 \emph{What this captures and misses.} The flag measures a missing public identity, not intent: some ghost-like names are pseudonyms of working musicians. It also misses ghost-like names that carry a short mood bio, which makes the shares slightly conservative (see \emph{Why this rule}). The shares hold for these \nFunctional{} hand-picked playlists and would change with another selection.
 
-\subsection*{2. The credits show hundreds of artists; the recording codes show eight houses}
-In the credits, ghost-like names look self-released: \selfSourceGhost{} of them give \emph{their own name} as the label of their tracks, against \selfSourceReal{} of the real artists on the same playlists. The recording codes tell a different story. The self-labelled names sit in houses with a median of \selfSourceHouse{} other names.
-
-Figure~\ref{fig:ownership}A draws the network of names and houses. Of the \ghostWithReg{} ghost-like names with a recording code, \topEightGhostNames{} come from just eight houses, and \topEightSE{} of those eight use Swedish-issued codes. For four of the eight, no company appears anywhere in the credits. Two belong to Overtone Studios, owned by Epidemic Sound~\cite{stassen2024mbw}; one is Firefly Entertainment.
-
-The concentration does not depend on our flag. Counting every mood-playlist slot by the code on its own track, the eight largest houses registered \lfTopEightCodedF{} of the slots that have a code. On the genre playlists, the eight largest houses registered \lfTopEightCodedG{} (Fig.~\ref{fig:ownership}B).
-
-\emph{What this captures and misses.} A house is whoever registered the recording, which can be a label or a distributor, not necessarily the composer. \nMultiHouse{} names have tracks in more than one house, often the same pair of large houses, so the eight houses may be fewer than eight companies.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\linewidth]{fig3_ownership.pdf}
-\caption{\textbf{Hundreds of artist names, eight houses.} (\emph{A}) Each dark node is a house; the dots around it are the artist names whose tracks it registered, so disc area shows the number of names. Houses are numbered as in Fig.~\ref{fig:data}. Blue dots inside the large houses are names that happen to have a written bio; on everything else they resemble their neighbours. (\emph{B}) Share of playlist slots by who registered the slot's track: each kind of playlist's own eight largest houses, all other houses, or no code. No ghost-like flag is used in B.}
-\label{fig:ownership}
-\end{figure*}
-
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{fig4_recommender.pdf}
 \caption{\textbf{The recommender's map of similar artists is a map of the playlists.} (\emph{A}) ``Fans also like'' links among the dataset's names (largest connected group, \nGiant{} names), laid out by cluster. Labels give the playlist most of a cluster's names come from. (\emph{B}) The two shuffles used to say what chance would give. (\emph{C}) Observed number of links of each kind divided by the number expected under each shuffle (1,000 shuffles each). The grey band is the range of chance; it is narrower than $\pm$\nullRange{}. (\emph{D}) How closely the clusters in A match three ways of grouping the names (normalised mutual information). Grey: the same with the grouping shuffled.}
 \label{fig:recommender}
+\end{figure*}
+
+\subsection*{2. The credits show hundreds of artists; the recording codes show eight houses}
+In the credits, ghost-like names look self-released: \selfSourceGhost{} of them give \emph{their own name} as the label of their tracks, against \selfSourceReal{} of the real artists on the same playlists. For a listener, the credits are the only place to check who made a track, and there each of these names looks like an independent musician. The recording codes tell a different story. The self-labelled names sit in houses with a median of \selfSourceHouse{} other names.
+
+Figure~\ref{fig:ownership}A draws the network of names and houses. Of the \ghostWithReg{} ghost-like names with a recording code, \topEightGhostNames{} come from just eight houses, and \topEightSE{} of those eight use Swedish-issued codes. Over all ghost-like names with a code, \seGhost{} have a Swedish-issued one, against \seReal{} of the real artists, which fits the press reports about Swedish production companies~\cite{ingham2022mbw,stassen2024mbw}. For four of the eight, no company appears anywhere in the credits. Two belong to Overtone Studios, owned by Epidemic Sound~\cite{stassen2024mbw}; one is Firefly Entertainment.
+
+The concentration does not depend on our flag. Counting every mood-playlist slot by the code on its own track, the eight largest houses registered \lfTopEightCodedF{} of the slots that have a code. On the genre playlists, the eight largest houses registered \lfTopEightCodedG{} (Fig.~\ref{fig:ownership}B).
+
+\emph{What this captures and misses.} A house is whoever registered the recording, which can be a label or a distributor, not necessarily the composer. \nMultiHouse{} names have tracks in more than one house, often the same pair of large houses, so the eight houses may be fewer than eight companies.
+
+
+
+
+
+\begin{figure*}[tb]
+\centering
+\includegraphics[width=0.95\linewidth]{fig5_text.pdf}
+\caption{\textbf{What a listener sees.} (\emph{A}) How well one kind of visible content predicts the ghost-like flag among mood-playlist names (cross-validated ROC AUC). (\emph{B}) Words most typical of ghost-like and of real bios (weighted log-odds~\cite{monroe2008fightin}).}
+\label{fig:text}
 \end{figure*}
 
 \subsection*{3. The recommender does not push listeners to ghosts; it mirrors the playlists}
@@ -136,6 +151,8 @@ To see whether this is more or less than chance, we compared the links with two 
 
 Against shuffle 1, real artists list ghost-like names only \flowRGDeg$\times$ as often as chance, and ghost-like names list real artists \flowGRDeg$\times$ as often (Fig.~\ref{fig:recommender}C). We had expected a ``funnel'' in which real artists send listeners on to ghosts while ghosts rarely send them back. There is none: both directions are reduced about equally. Most of the separation comes from the playlists. Against shuffle 2 it shrinks to \flowRGPl$\times$ and \flowGRPl$\times$: listeners who found a name on \emph{Sleep} also listen to other \emph{Sleep} names.
 
+So the recommender is not where ghost-like names get their listeners; the playlists are. Spotify reports, for each artist, the playlist where most listeners found them. For \discOursG{} of ghost-like names that is one of our editorial playlists, against \discOursR{} of the real artists beside them. Ghost-like names also live in a closed neighbourhood: \inSetGhost{} of the links on their pages point to other names in our data, against \inSetReal{} for real artists, whose recommendations reach out to artists on no playlist we collected.
+
 One pattern goes beyond the playlists. Names from the same house are linked \samePl$\times$ as often as shuffle 2 predicts (\sameObs{} links against \sameExpPl).
 
 Clustering the network shows which of the two effects dominates. The Louvain method~\cite{blondel2008louvain} finds \nComm{} clusters (Fig.~\ref{fig:recommender}A). They match each name's home playlist closely (normalised mutual information \nmiHome; shuffled \nmiHomeNull) and its house much less (\nmiHouse; shuffled \nmiHouseNull) (Fig.~\ref{fig:recommender}D). Playlists shape the recommender's map; houses add a smaller pull on top, which the count above isolates. Part of even that house signal is the playlists again, since a house's names tend to sit on the same few playlists.
@@ -143,12 +160,7 @@ Clustering the network shows which of the two effects dominates. The Louvain met
 \emph{What this captures and misses.} ``Fans also like'' is the output of the recommender, not its inner workings, so we cannot say why same-house names are linked: shared composers and a shared sound could produce co-listening without the recommender treating houses specially. The result says that placement creates co-listening, and co-listening becomes ``similarity''.
 
 % =====================================================================================
-\begin{figure*}[tb]
-\centering
-\includegraphics[width=0.95\linewidth]{fig5_text.pdf}
-\caption{\textbf{What a listener sees.} (\emph{A}) How well one kind of visible content predicts the ghost-like flag among mood-playlist names (cross-validated ROC AUC). (\emph{B}) Words most typical of ghost-like and of real bios (weighted log-odds~\cite{monroe2008fightin}).}
-\label{fig:text}
-\end{figure*}
+
 
 \subsection*{What a listener sees}
 Would a listener notice? A listener sees an artist's name, track titles, cover art, the music itself and, sometimes, a bio. We asked how much each of these gives away on its own. For each kind of content we trained a simple classifier to predict the flag and measured how well it does on names it has not seen (Fig.~\ref{fig:text}A). The score is the ROC AUC: the chance that the classifier ranks a random ghost-like name above a random real one, so 0.5 is guessing and 1 is perfect. We used mood-playlist names only, so the classifier cannot win by telling sleep music from rap.
@@ -164,6 +176,8 @@ In short, the things a listener meets first (the name, the titles and the sound)
 % =====================================================================================
 \section*{Discussion}
 Three in four slots on Spotify's mood playlists go to names without a public identity. The credits make them look self-released, but their recording codes lead to a small number of houses, mostly with Swedish-issued codes. The press reports needed leaked lists to show this; the public recording codes are enough. Spotify's recommender does not funnel listeners from real artists to these names. Its idea of similarity mostly reproduces its own playlists, and names from one house stay together beyond that. A listener can hardly tell: names, titles and sound look like those of real artists.
+
+These results suggest where to look. If the aim is to know who is behind a playlist, the recording codes are a public and cheap audit tool: anyone can repeat our ownership analysis for another market or another month. If the aim is to understand how catalogue music reaches listeners, the place to look is playlist curation, not the recommender, which mostly echoes what the playlists already do. As generative AI makes such catalogues cheaper to produce, the same two tools could show how fast they grow.
 
 \emph{Limitations.} This is one snapshot. Daily snapshots would show whether ghost-like names replace real artists over time. The playlists are Spotify's global editorial playlists seen from Denmark, and we did not test whether their track lists differ by market. The flag misses suppliers with real profiles and wrongly flags some classical names. Deezer matching fails more often for mood-playlist tracks, so houses are measured on \deezerMatchF{} of them, and one large supplier is almost absent from Deezer. House sizes are counted within our sample.
 

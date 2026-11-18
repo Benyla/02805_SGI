@@ -87,6 +87,9 @@ def main() -> None:
         m[f"sens{tag}Slots"] = pct(sens.loc[key, "slot_share"])
         m[f"sens{tag}Firefly"] = pct(sens.loc[key, "firefly"])
         m[f"sens{tag}Majors"] = pct(sens.loc[key, "majors"])
+    # where listeners find a name: its top "Discovered on" playlist is one of our 50
+    m["discOursG"] = pct(f.loc[f.ghost, "top_is_ours"].mean())
+    m["discOursR"] = pct(f.loc[~f.ghost, "top_is_ours"].mean())
     m["realLowFpl"] = pct(((f.followers / f.monthly_listeners * 1000) <= 1.4)[~f.ghost].mean())
 
     # ---- placement
