@@ -1,21 +1,24 @@
 \documentclass[9pt,twocolumn,twoside]{pnas-new}
 % Use the lineno option to display guide line numbers if required.
 
-\templatetype{pnasresearcharticle}
-\setboolean{displaywatermark}{false}
+\articletype{CLASSIFICATION}%%%% Article topic/classification
+
+\templatetype{pnasresearcharticle} % Choose template
 
 \usepackage{siunitx}
 \usepackage{xurl}
 \input{numbers}
-\graphicspath{{../figures/}}
+\graphicspath{{figures/}{../figures/}} % Overleaf: figures/ ; local: ../figures/
 
-% Footer: course instead of journal placeholders (template class left untouched)
-\makeatletter
-\fancypagestyle{firststyle}{%
-  \fancyfoot[R]{\footerfont 02805 Social Graphs and Interactions\hspace{7pt}|\hspace{7pt}\textbf{November 2026}\hspace{7pt}|\hspace{7pt}\textbf{\thepage\textendash\pageref{LastPage}}}%
-  \fancyfoot[L]{\footerfont\@ifundefined{@doi}{}{\@doi}}}
+% Footer on pages 2+: course instead of journal placeholders.
+% Do NOT redefine the firststyle page style: the class defines the line-number
+% counter inside it, so overriding it breaks the build.
 \fancyfoot[RO]{\footerfont 02805 Social Graphs and Interactions\hspace{7pt}|\hspace{7pt}November 2026\hspace{7pt}|\hspace{7pt}\textbf{\thepage}}
-\makeatother
+\fancyfoot[LO]{}
+\fancyfoot[RE]{}
+\fancyfoot[LE]{\footerfont\textbf{\thepage}\hspace{7pt}|\hspace{7pt}02805 Social Graphs and Interactions\hspace{7pt}|\hspace{7pt}November 2026}
+
+\begin{document}
 
 \title{Many faces, few hands: how credit networks reveal Spotify's ghost artists, and where the recommender puts them}
 
@@ -31,7 +34,7 @@
 
 \authorcontributions{Author contributions: TODO -- A.H.J., B.N.L. and S.B. to write one specific sentence each (who did the data collection, which analyses, which sections).}
 \authordeclaration{The authors declare no competing interests. Code and processed data: \url{https://github.com/Benyla/02805_SGI} (folder \texttt{project/}).}
-\correspondingauthor{Course project, hand-in 27 November 2026.}
+\correspondingauthor{\textsuperscript{1}To whom correspondence should be addressed. Course project, hand-in 27 November 2026.}
 
 \keywords{streaming $|$ ghost artists $|$ bipartite networks $|$ null models $|$ recommender audit}
 
@@ -42,25 +45,25 @@ Spotify's mood playlists are said to be filled with cheap stock music released u
 \dates{This manuscript was compiled on \today}
 \doi{\url{https://github.com/Benyla/02805_SGI}}
 
-\begin{document}
-
 \maketitle
 \thispagestyle{firststyle}
 \ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
 
 % =====================================================================================
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\linewidth]{fig1_data.pdf}
-\caption{\textbf{Where the playlist slots go.} Every band is a count from the data; its width is the number of playlist slots. Left: the \nPlaylists{} playlists, grouped by what they are for. Middle: whether the name on the slot is ghost-like (orange) or real (blue). Right: who registered the slot's recording, from its ISRC code. Houses are numbered by the number of mood-playlist slots they registered. ``No recording code'': the track was not found on Deezer.}
-\label{fig:data}
-\end{figure*}
+\Firstpage
 
 \dropcap{P}laylists with names like \emph{Deep Focus}, \emph{Sleep} or \emph{Jazz in the Background} are among the most followed on Spotify, and placement on them is worth millions of streams~\cite{aguiar2021platforms,eriksson2019teardown}. Journalists have reported that much of this music is not made by the artists it is credited to. Pelly describes an internal Spotify programme, ``Perfect Fit Content'', in which production companies supply cheap background music for editorial playlists~\cite{pelly2025harpers,pelly2025mood}. In 2022 the Swedish newspaper \emph{Dagens Nyheter} (DN) obtained a list of 830 artist names linked to one company, Firefly Entertainment; at least 495 of them were on Spotify's own playlists, and music for more than 500 of the names came from about 20 songwriters~\cite{ingham2022mbw}. A later DN story traced one composer behind more than 650 names, released through Overtone Studios, a label owned by Epidemic Sound~\cite{stassen2024mbw}. The question matters more as generative AI lowers the cost of such catalogues: in July 2026 Deezer reported that more than half of its daily uploads were fully AI-generated~\cite{techcrunch2026deezer}.
 
 This reporting rests on leaked lists and interviews. We ask what can be seen from public data alone, with the tools of network science. Two networks do most of the work. The first connects artist names to the organisations that registered their recordings; if many names share one registrant, the network shows it, whatever the credits say. The second is Spotify's own ``Fans also like'' network, which we compare with shuffled versions of itself to see which links are more common than chance.
 
-The question matters beyond curiosity. Streaming royalties are shared out in proportion to streams, so every stream to a catalogue name on a mood playlist is a stream that does not go to another artist. Listeners, too, may care whether the ``artist'' they hear exists. We answer three questions in turn. \emph{Who is on the playlists?} \emph{Who makes the music?} \emph{Where does Spotify's recommender put it?}
+The question matters beyond curiosity. Streaming royalties are shared out in proportion to streams, so every stream to a catalogue name on a mood playlist is a stream that does not go to another artist. Listeners, too, may care whether the ``artist'' they hear exists. We answer three questions in turn. \emph{Who is on the playlists?} \emph{Who makes the music?} \emph{Where does Spotify's recommender put it?}\Endparasplit
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig1_data.pdf}
+\caption{\textbf{Where the playlist slots go.} Every band is a count from the data; its width is the number of playlist slots. Left: the \nPlaylists{} playlists, grouped by what they are for. Middle: whether the name on the slot is ghost-like (orange) or real (blue). Right: who registered the slot's recording, from its ISRC code. Houses are numbered by the number of mood-playlist slots they registered. ``No recording code'': the track was not found on Deezer.}
+\label{fig:data}
+\end{figure*}
 
 % =====================================================================================
 \section*{Data and how we flag a ghost-like name}
@@ -184,8 +187,7 @@ These results suggest where to look. If the aim is to know who is behind a playl
 \emph{Ethics.} Spotify's terms forbid automated collection, so we kept the crawl small and slow. We downloaded no audio from Spotify, and used only Deezer's official previews, processed locally. Because some ghost-like names belong to real musicians, we report houses and companies in aggregate and never profile named individuals.
 
 % =====================================================================================
-\section*{Materials and Methods}
-\small
+\matmethods{
 \textbf{Collection.} On 4 November 2026 we queried Spotify's web-player API from an anonymous session in Denmark at about 10 requests/s. Of the 2,622 Spotify-owned playlists on the Danish browse page, we kept editorial playlists that are the same for every listener and chose \nFunctional{} mood and \nGenre{} genre playlists among them by hand. Tracks were matched to Deezer's public API by artist and title, with a duration check. Matches are reliable: titles agree exactly for over 99\% and the artist always matches. The house is the first five ISRC characters (country and registrant code); a house's size is the number of names whose house it is.
 
 \textbf{Shuffles.} The network has a directed link from each name to every dataset name on its ``Fans also like'' list (\nFalIn{} links). Shuffle 1 permutes the targets of all links, which keeps every name's number of outgoing and incoming links (a directed configuration model~\cite{maslov2002specificity}). Shuffle 2 permutes targets only among links whose target has the same home playlist (the playlist where the name has most slots). We report observed counts divided by the mean of 1,000 shuffles.
@@ -195,7 +197,19 @@ These results suggest where to look. If the aim is to know who is behind a playl
 \textbf{Text, images and sound.} Classifiers are TF-IDF (character 2--4-grams for names; word 1--2-grams for titles and bios, with the artist's own name removed) with logistic regression, 5-fold stratified cross-validation and 20 shuffled-label runs as chance~\cite{pedregosa2011sklearn}. Entities come from spaCy~\cite{honnibal2020spacy}. Cover embeddings come from OpenCLIP ViT-B/32~\cite{radford2021clip,cherti2023openclip}, averaged per artist. Audio features (tempo, loudness, brightness, timbre) were computed with librosa~\cite{mcfee2015librosa} on \nAudio{} Deezer previews from \nAudioPlaylists{} playlists.
 
 \textbf{Reproducibility.} Every number in this paper is written by \texttt{src/paper\_numbers.py} from the processed data, and every figure by one script in \texttt{src/figures/}. Random seeds are fixed.
+}
 
+\showmatmethods{} % Display the Materials and Methods section
+
+\dataavail{Code and processed data are available at \url{https://github.com/Benyla/02805_SGI} (folder \texttt{project/}).}
+
+\acknow{We thank the teaching staff of 02805 Social Graphs and Interactions at DTU for feedback on this project.}
+
+\showacknow{} % Display the acknowledgments section
+
+\bibsplit[3]
+
+% Bibliography
 \bibliography{refs}
 
 \end{document}
