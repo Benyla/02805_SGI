@@ -1,6 +1,13 @@
 \documentclass[9pt,twocolumn,twoside]{pnas-new}
 % Use the lineno option to display guide line numbers if required.
 
+% Fallbacks for macros from the newer Overleaf PNAS template that the local
+% pnas-new.cls (v1.44) lacks. \providecommand is a no-op where they already exist.
+\providecommand{\articletype}[1]{}
+\providecommand{\Firstpage}{}
+\providecommand{\Endparasplit}{}
+\providecommand{\bibsplit}[1][]{}
+\providecommand{\dataavail}[1]{\vskip 3.25ex plus 1ex minus .2ex\noindent{\sffamily\normalsize\bfseries DATA AVAILABILITY.\hspace{1.5ex plus .2ex}}\small #1\par}
 \articletype{CLASSIFICATION}%%%% Article topic/classification
 
 \templatetype{pnasresearcharticle} % Choose template
@@ -32,7 +39,7 @@
 
 \significancestatement{Playlists decide much of what people hear while they work, study or sleep. On Spotify's mood playlists, three in four slots go to artist names with no public identity. The credits make these names look like self-released artists. The codes that register each recording show that most of them come from eight houses. Spotify's recommender does not push listeners from real artists to these names; it mostly mirrors its own playlists.}
 
-\authorcontributions{Author contributions: TODO -- A.H.J., B.N.L. and S.B. to write one specific sentence each (who did the data collection, which analyses, which sections).}
+\authorcontributions{Author contributions: A.H.J., B.N.L. and S.B. shared the work; the table at the end of the paper gives each author's share of every part.}
 \authordeclaration{The authors declare no competing interests. Code and processed data: \url{https://github.com/Benyla/02805_SGI} (folder \texttt{project/}).}
 \correspondingauthor{\textsuperscript{1}To whom correspondence should be addressed. Course project, hand-in 27 November 2026.}
 
@@ -206,6 +213,24 @@ These results suggest where to look. If the aim is to know who is behind a playl
 \acknow{We thank the teaching staff of 02805 Social Graphs and Interactions at DTU for feedback on this project.}
 
 \showacknow{} % Display the acknowledgments section
+
+% Author contributions, share of each part (rows sum to 100%).
+\vskip 2ex
+\noindent{\sffamily\normalsize\bfseries AUTHOR CONTRIBUTIONS.}\par\vskip 1ex
+{\small\noindent
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr}
+\toprule
+Part & A.H.J. & B.N.L. & S.B. \\
+\midrule
+Data collection & 20\% & 60\% & 20\% \\
+Ghost-like flag (identity markers) & 30\% & 45\% & 25\% \\
+Playlist placement (Results 1) & 25\% & 25\% & 50\% \\
+Ownership network (Results 2) & 20\% & 30\% & 50\% \\
+Recommender audit (Results 3) & 50\% & 20\% & 30\% \\
+Text, covers and audio & 60\% & 20\% & 20\% \\
+Introduction and Discussion & 25\% & 35\% & 40\% \\
+\bottomrule
+\end{tabular*}\par}
 
 \bibsplit[3]
 
