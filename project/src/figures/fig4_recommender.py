@@ -136,9 +136,9 @@ def panel_network(ax) -> None:
     ax.scatter([], [], s=9, c=REAL, label="real artist")
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, 0.03), ncol=2, fontsize=6.5, handletextpad=0.1)
     ax.set_title("A  Each cluster of similar artists is a playlist", loc="left")
-    ax.text(0.5, -0.205, "Nodes are artist names and edges are 'Fans also like' links (largest connected\n"
-            "group). Numbers mark clusters, named after the playlist most of their names come\n"
-            "from. The percentage is the share of ghost-like names in the cluster.",
+    ax.text(0.5, -0.205, "Nodes are artist names, edges are 'Fans also like' links (largest connected group).\n"
+            "Each cluster is named after the most common home playlist of its names (the playlist\n"
+            "where a name has the most slots). % = share of ghost-like names in the cluster.",
             transform=ax.transAxes, ha="center", va="top", fontsize=6.2, color=TEXT_2, linespacing=1.25)
 
 
@@ -176,8 +176,8 @@ def panel_nulls(ax) -> None:
     ax.tick_params(axis="y", length=0)
     ax.spines["left"].set_visible(False)
     # direction guide above the plot
-    ax.text(0.94, 2.95, "← rarer than chance", ha="right", va="center", fontsize=6.3, color=TEXT_2)
-    ax.text(1.06, 2.95, "more common than chance →", ha="left", va="center", fontsize=6.3, color=TEXT_2)
+    ax.text(0.94, 2.95, "$\\leftarrow$ rarer than chance", ha="right", va="center", fontsize=6.3, color=TEXT_2)
+    ax.text(1.06, 2.95, "more common than chance $\\rightarrow$", ha="left", va="center", fontsize=6.3, color=TEXT_2)
     ax.scatter([], [], s=22, facecolor="white", edgecolor=TEXT, lw=0.8, label="vs shuffle 1")
     ax.scatter([], [], s=22, facecolor=TEXT, edgecolor=TEXT, lw=0.8, label="vs shuffle 2")
     ax.text(0.93, -1.25, f"Chance varies only\n±{chance:.0%} around 1×,\ntoo little to show", ha="right",
@@ -249,7 +249,7 @@ def panel_nmi(ax) -> None:
     ax.tick_params(axis="y", length=0)
     ax.legend(loc="lower right", fontsize=6.2, bbox_to_anchor=(1.03, -0.02), labelspacing=0.3,
               borderaxespad=0.2)
-    ax.set_title("D  NMI shows clusters follow playlists, not houses", loc="left")
+    ax.set_title("D  NMI shows clusters follow playlists far more than houses", loc="left")
 
 
 def main() -> None:
