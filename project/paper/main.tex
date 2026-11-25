@@ -1,14 +1,7 @@
 \documentclass[9pt,twocolumn,twoside]{pnas-new}
 % Use the lineno option to display guide line numbers if required.
 
-% Fallbacks for macros from the newer Overleaf PNAS template that the local
-% pnas-new.cls (v1.44) lacks. \providecommand is a no-op where they already exist.
-\providecommand{\articletype}[1]{}
-\providecommand{\Firstpage}{}
-\providecommand{\Endparasplit}{}
-\providecommand{\bibsplit}[1][]{}
-\providecommand{\dataavail}[1]{\vskip 3.25ex plus 1ex minus .2ex\noindent{\sffamily\normalsize\bfseries DATA AVAILABILITY.\hspace{1.5ex plus .2ex}}\small #1\par}
-\articletype{CLASSIFICATION}%%%% Article topic/classification
+\articletype{SOCIAL SCIENCES}%%%% Article topic/classification
 
 \templatetype{pnasresearcharticle} % Choose template
 \setboolean{displaywatermark}{false}
@@ -18,9 +11,19 @@
 \input{numbers}
 \graphicspath{{figures/}{../figures/}} % figures/ on Overleaf, ../figures/ locally
 
-% Footer on pages 2 and later shows the course instead of journal placeholders.
-% Do NOT redefine the firststyle page style. The class defines the line-number
-% counter inside it, so overriding it breaks the build.
+% Course hand-in, not a submission: no line numbers (watermark is off above).
+\makeatletter
+\def\PNAS@linecountLO{}\def\PNAS@linecountRO{}\def\PNAS@linecountLE{}\def\PNAS@linecountRE{}
+\def\PNAS@linecountsecpageLO{}\def\PNAS@linecountsecpageRO{}\def\PNAS@linecountsecpageLE{}\def\PNAS@linecountsecpageRE{}
+% First page: run the class's firststyle (it allocates the line-count boxes,
+% so it must not be replaced), then drop its line numbers and journal footer.
+\let\PNAS@origfirststyle\ps@firststyle
+\def\ps@firststyle{\PNAS@origfirststyle\fancyhead{}%
+  \fancyfoot[L]{\footerfont 02805 Social Graphs and Interactions\hspace{7pt}|\hspace{7pt}November 2026}
+  \fancyfoot[R]{\footerfont\textbf{\thepage\ of \pageref*{LastPage}}}}
+\makeatother
+
+% Footer on pages 2+: course instead of journal placeholders.
 \fancyfoot[RO]{\footerfont 02805 Social Graphs and Interactions\hspace{7pt}|\hspace{7pt}November 2026\hspace{7pt}|\hspace{7pt}\textbf{\thepage}}
 \fancyfoot[LO]{}
 \fancyfoot[RE]{}
@@ -82,7 +85,15 @@ We looked up each track on Deezer to get its ISRC. This is an international reco
 
 \textbf{The flag.} We call a name \emph{ghost-like} if it is missing at least four of five signs of a public identity. These are a verified badge, a bio, a link to an outside website, a photo in the gallery, and a Spotify ``This Is'' playlist, which Spotify only makes for established artists. All other names we call \emph{real}. The rule uses nothing about who made the music or how people listen to it. So if flagged names turn out to share something there, it is a finding and not something we built in. The rule flags \nGhost{} of the \nNames{} names.
 
-\textbf{Does the flag find the right names?} We tested it on four groups it was not built from (Fig.~\ref{fig:checks}). It flags \refFirefly{} of the \nFirefly{} names released by Firefly Entertainment, the company from the DN story. It flags only \refGenreNames{} of the \nGenreNames{} artists on the genre playlists, and the \nGenreFlagged{} it does flag are real musicians with thin profiles, mostly on \emph{Desi Indie}. Its main mistake is with classical labels. It flags \refMajors{} of the \nMajors{} names from Deutsche Grammophon, Decca, Sony and Warner, because session ensembles and soloists often have no profile either. This mistake works against our results, since those names are spread over many small houses. Epidemic Sound's own names are flagged in only \refEpidemic{} of cases. By our definition that is correct, because \epidemicBio{} of them have a bio, half of their tracks credit a composer, and they have \epidemicFplRatio$\times$ more followers per listener than a typical mood-playlist name. Epidemic makes this kind of music, but it does not hide behind its names.
+\textbf{How often is the flag wrong?} We tested the flag on four groups of names where we already know what the answer should be (Fig.~\ref{fig:checks}). None of them were used to build it. For comparison, it flags \ghostShareNamesF{} of all names on the mood playlists.
+
+\emph{Known ghost names.} Firefly Entertainment is the company from the DN story. The flag catches \refFirefly{} of its \nFirefly{} names, so it finds most of the names it should find.
+
+\emph{Known real artists.} It flags only \refGenreNames{} of the \nGenreNames{} artists on the genre playlists. The \nGenreFlagged{} it does flag are real musicians with thin profiles, mostly on \emph{Desi Indie}.
+
+\emph{Classical musicians.} This is the flag's largest mistake. It flags \refMajors{} of the \nMajors{} names from Deutsche Grammophon, Decca, Sony and Warner, because orchestras and soloists hired for a recording often have no profile either. This mistake makes our results weaker, not stronger: these names are spread over many small houses, not the eight large ones.
+
+\emph{A company with open names.} Epidemic Sound produces the same kind of background music, but releases some of it under names with a public profile. Of the \nEpidemic{} names on its own label, \epidemicBio{} have a bio, so the flag marks only \refEpidemic{}. That is the right answer, because the flag asks whether a name has a public identity, not who made the music. Two signs the flag does not use agree: half of these names' tracks credit a composer, and they have \epidemicFplRatio$\times$ as many followers per listener as a typical mood-playlist name. Epidemic's other label, Overtone Studios, is different: the flag marks 91\% of its 194 names. The same company thus releases music under both open and ghost-like names.
 
 \textbf{Why this rule.} We chose the rule for three reasons. It only uses what any listener can see on an artist's page. It fits in one sentence, so every flag can be checked by hand. And it leaves out everything we want to test, namely who made the music, how people listen to it, and how it is recommended. If the flag used listening or production data, a finding like ``ghost-like names have no fans'' would be true by construction. The cost is that the rule makes mistakes in both directions. It flags some real musicians with thin profiles, like the classical names above. And it misses ghost-like names that have a short mood bio and a photo. In fact \realLowFpl{} of the names it calls real listen like ghosts, with a few hundred followers for up to a million listeners, and they come from the same large houses. We do not fix these mistakes with listening data, for the reason just given. Both mistakes work against our results, because the missed names sit in the largest houses and the wrongly flagged ones sit in small houses. If we did correct both using followers per listener, the share of mood-playlist slots held by ghost-like names would rise from \slotGhostF{} to \sensFplSlots{}. Where we draw the line matters more. Requiring three missing signs gives \sensThreeSlots{} and requiring all five gives \sensFiveSlots{}. But the first also flags \sensThreeMajors{} of the classical-label names, and the second catches only \sensFiveFirefly{} of Firefly's names. Every result points the same way under each version, and the house concentration in Results section 2 does not use the flag at all.
 
