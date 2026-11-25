@@ -5,6 +5,8 @@ slots pass the colour-blind checks as a set. Group colours are fixed by entity, 
 """
 from __future__ import annotations
 
+import os
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -52,11 +54,13 @@ def apply() -> None:
 
 
 def save(fig: plt.Figure, name: str) -> None:
-    FIGURES.mkdir(parents=True, exist_ok=True)
+    # FIG_OUT=figures_v2 writes to project/figures_v2/ instead, to compare versions side by side
+    out = FIGURES.parent / os.environ["FIG_OUT"] if os.environ.get("FIG_OUT") else FIGURES
+    out.mkdir(parents=True, exist_ok=True)
     for ext in ("pdf", "png"):
-        fig.savefig(FIGURES / f"{name}.{ext}")
+        fig.savefig(out / f"{name}.{ext}")
     plt.close(fig)
-    print(f"  wrote figures/{name}.pdf/.png")
+    print(f"  wrote {out.name}/{name}.pdf/.png")
 
 # Main dichotomy of the paper (validated pair: slots 1 and 2)
 GHOST = "#eb6834"

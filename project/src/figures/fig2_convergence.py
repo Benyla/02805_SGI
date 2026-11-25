@@ -1,25 +1,25 @@
 """Figure 2 (single column): the rule passes checks it never saw.
 
-Share of names flagged ghost-like in four groups the rule knows nothing about, against the
-share among all names on the mood playlists.
+Share of names flagged ghost-like in four groups the rule knows nothing about, grouped by
+what the flag *should* say about them, against the share among all names on the mood playlists.
 
     python -m src.figures.fig2_convergence
 """
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 from src.figures import style
-from src.figures.style import GHOST, NEUTRAL, REAL, TEXT, TEXT_2
+from src.figures.style import GHOST, REAL, TEXT, TEXT_2
 from src.load import PROCESSED
 
+# (key in reference table, row label, expected answer)
 ROWS = [
-    ("Firefly Entertainment", "Firefly Entertainment\n(company in the press reports)"),
-    ("Epidemic Sound", "Epidemic Sound's own names\n(credited composers)"),
-    ("Classical majors", "Classical majors\n(DG, Decca, Sony, Warner)"),
-    ("Genre-playlist artists", "Artists on the genre\nplaylists (control)"),
+    ("Firefly Entertainment", "Firefly Entertainment", "ghost"),
+    ("Genre-playlist artists", "Genre-playlist artists", "real"),
+    ("Epidemic Sound", "Epidemic Sound", "real"),
+    ("Classical majors", "Classical major labels", "real"),
 ]
 
 
@@ -29,26 +29,33 @@ def main() -> None:
     df = pd.read_parquet(PROCESSED / "artist_features.parquet")
     base = df.loc[df.group == "functional", "ghost"].mean()
 
-    fig, ax = plt.subplots(figsize=(2.5, 1.75))
-    y = np.arange(len(ROWS))[::-1]
-    for yi, (key, lab) in zip(y, ROWS):
+    fig, ax = plt.subplots(figsize=(2.6, 1.95))
+    # y positions with a gap between the two groups
+    y = {0: 4.3, 1: 2.6, 2: 1.6, 3: 0.6}
+    for i, (key, lab, exp) in enumerate(ROWS):
         s, n = ref.loc[key, "share_ghost"], int(ref.loc[key, "n_artists"])
-        ax.plot([0, 1], [yi, yi], color="#ecebe7", lw=5, solid_capstyle="round", zorder=1)
-        ax.scatter([s], [yi], s=46, color=GHOST if s > 0.5 else REAL, zorder=3, lw=0.6, ec="white")
-        ax.text(s + 0.045, yi, f"{s:.0%}  (n = {n})", va="center", ha="left", fontsize=6.5, color=TEXT)
-    ax.axvline(base, color=TEXT_2, lw=0.7, ls=(0, (2, 2)), zorder=2)
-    ax.text(base - 0.02, len(ROWS) - 0.45, f"all names on mood playlists: {base:.0%}", ha="right", va="bottom",
-            fontsize=6.5, color=TEXT_2)
-    ax.set_yticks(y, [lab for _, lab in ROWS], fontsize=6.5)
-    ax.set_xlim(-0.03, 1.3)
-    ax.set_ylim(-0.6, len(ROWS) - 0.2)
-    ax.set_xticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=6.5)
-    ax.set_xlabel("Share flagged ghost-like", fontsize=6.5)
-    ax.xaxis.set_label_coords(0.53 / 1.33, -0.2)
-    ax.grid(False)
+        col = GHOST if exp == "ghost" else REAL
+        ax.barh(y[i], s, height=0.62, color=col, lw=0, zorder=2)
+        ax.text(s + 0.02, y[i], f"{s:.0%}", va="center", ha="left", fontsize=7, color=TEXT,
+                fontweight="bold", zorder=3)
+        ax.text(-0.02, y[i], f"{lab}\n{n} names", va="center", ha="right", fontsize=6.3, color=TEXT,
+                linespacing=1.1)
+    # group headers
+    ax.text(-0.02, 5.15, "Should be flagged", ha="right", va="center", fontsize=6.5, color=GHOST,
+            fontweight="bold")
+    ax.text(-0.02, 3.45, "Should not be flagged", ha="right", va="center", fontsize=6.5, color=REAL,
+            fontweight="bold")
+    # reference line
+    ax.axvline(base, color=TEXT_2, lw=0.7, ls=(0, (2, 2)), zorder=1)
+    ax.text(base + 0.015, 5.15, f"All mood-playlist\nnames ({base:.0%})", ha="left", va="center",
+            fontsize=6, color=TEXT_2, linespacing=1.1)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0.05, 5.6)
+    ax.set_yticks([])
+    ax.set_xticks([0, 0.5, 1], ["0%", "50%", "100%"], fontsize=6.5)
+    ax.set_xlabel("Share of names the rule flags as ghost-like", fontsize=6.5)
+    ax.grid(axis="y", visible=False)
     ax.spines["left"].set_visible(False)
-    ax.spines["bottom"].set_bounds(0, 1)
-    ax.tick_params(axis="y", length=0)
     style.save(fig, "fig2_convergence")
 
 
