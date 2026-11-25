@@ -76,63 +76,92 @@ function fig(s, name, x, y, w, alt) {
 
 // ================================================================ slide 1
 {
-  const s = newSlide("Data and the flag", "1  ·  Data and the ghost-like flag",
-    "Three in four mood-playlist slots go to names with no public identity");
-  const y0 = 1.6, h = 5.2, cw = 3.75, gap = 0.54;
-  const xs = [M, M + cw + gap, M + 2 * (cw + gap)];
-  xs.forEach((x, i) => card(s, x, y0, cw, h, CARD, `step card ${i + 1}`));
-  arrow(s, xs[0] + cw + 0.08, y0 + 0.51, xs[1] - 0.08, y0 + 0.51);
-  arrow(s, xs[1] + cw + 0.08, y0 + 0.51, xs[2] - 0.08, y0 + 0.51);
-  const pad = 0.25;
+  const s = newSlide("Story and data", "1  ·  The story and our data",
+    "Who is really behind the music on Spotify's mood playlists?");
 
-  // 1 collect
-  let x = xs[0] + pad;
-  const w = cw - 2 * pad;
-  step(s, 1, "Collect the playlists", x, y0 + 0.3, w);
-  [["50", "editorial playlists", "45 mood (sleep, focus, calm, jazz) + 5 genre playlists as a control"],
-   ["9,004", "playlist slots", "each with its track, credits and recording code"],
-   ["5,024", "artist names", "each with its public profile and “Fans also like” list"]].forEach(([n, lab, sub], i) => {
-    const y = y0 + 0.95 + i * 1.2;
-    text(s, [{ text: n + "  ", options: { fontSize: 30, bold: true, color: NAVY, fontFace: HEAD } },
-             { text: lab, options: { fontSize: 16, bold: true } }], { x, y, w, h: 0.55, valign: "bottom" });
-    text(s, sub, { x, y: y + 0.58, w, h: 0.55, fontSize: 13, color: MUTED });
+  // ---- opener: why this matters, as short bullets in four cards joined by arrows, ending in our question
+  const sy = 1.35, sh = 1.8, n = 4, sg = 0.3, sw = (W - 2 * M - (n - 1) * sg) / n;
+  const story = [
+    ["Slots worth millions", ["Sleep, Deep Focus and more", "Most followed on Spotify", "One slot: millions of streams"]],
+    ["Cheap music fills them", ["Mass-produced mood music", "Now also AI slop", "Deezer: half of uploads AI"]],
+    ["Few hands, many names", ["One company: 830 names", "One composer: 650+ names", "Known only from leaks"]],
+    ["Our question", ["Who holds these slots?", "Can public data show it?"]],
+  ];
+  story.forEach(([head, body], i) => {
+    const x = M + i * (sw + sg), last = i === n - 1;
+    card(s, x, sy, sw, sh, last ? GHOST : CARD, `opener ${i + 1}`);
+    text(s, [{ text: head, options: { bold: true, fontSize: 15, color: last ? "FFFFFF" : GHOST, breakLine: true,
+                                      paraSpaceAfter: 6 } },
+             ...body.map((b, j) => ({ text: "•  " + b, options: { fontSize: 13, color: last ? "FFFFFF" : INK, bold: last,
+                                      breakLine: j < body.length - 1 } }))],
+         { x: x + 0.2, y: sy + 0.1, w: sw - 0.3, h: sh - 0.2, valign: "middle", paraSpaceAfter: 5 });
+    if (!last) arrow(s, x + sw + 0.05, sy + sh / 2, x + sw + sg - 0.05, sy + sh / 2);
   });
-  text(s, "One snapshot, 4 November 2026", { x, y: y0 + h - 0.45, w, h: 0.3, fontSize: 13, color: MUTED, italic: true });
 
-  // 2 flag
-  x = xs[1] + pad;
-  step(s, 2, "Flag ghost-like names", x, y0 + 0.3, w);
-  text(s, "Ghost-like if at least 4 of these 5 are missing:", { x, y: y0 + 0.9, w, h: 0.5, fontSize: 14 });
+  // ---- two steps: (1) collect from Spotify + Deezer, (2) flag and count
+  const y0 = 3.3, h = 3.65, pad = 0.25;
+  const c1x = M, c1w = 5.75, c2x = M + c1w + 0.5, c2w = W - M - c2x;
+  card(s, c1x, y0, c1w, h, CARD, "step card 1");
+  card(s, c2x, y0, c2w, h, CARD, "step card 2");
+  arrow(s, c1x + c1w + 0.08, y0 + 0.43, c2x - 0.08, y0 + 0.43);
+
+  // 1 collect: Spotify -> Deezer
+  step(s, 1, "Collect the data", c1x + pad, y0 + 0.22, c1w - 2 * pad);
+  const colw = 2.4, lx = c1x + pad, rx = c1x + c1w - pad - colw;
+  const src = (x, name, sub) => {
+    text(s, name, { x, y: y0 + 0.78, w: colw, h: 0.32, fontSize: 16, bold: true, color: NAVY, fontFace: HEAD });
+    text(s, sub, { x, y: y0 + 1.08, w: colw, h: 0.3, fontSize: 12, color: MUTED, italic: true });
+  };
+  const stat = (x, y, num, lab, sub) => {
+    text(s, [{ text: num + " ", options: { fontSize: 24, bold: true, color: NAVY, fontFace: HEAD } },
+             { text: lab, options: { fontSize: 14, bold: true } }], { x, y, w: colw, h: 0.45, valign: "bottom" });
+    if (sub) text(s, sub, { x, y: y + 0.47, w: colw, h: 0.45, fontSize: 12, color: MUTED });
+  };
+  src(lx, "Spotify", "web player, 4 Nov 2026");
+  stat(lx, y0 + 1.35, "50", "playlists", "45 mood + 5 genre (control)");
+  stat(lx, y0 + 2.05, "8,093", "tracks", "credits, cover art");
+  stat(lx, y0 + 2.75, "5,024", "names", "profile, “Fans also like”");
+  arrow(s, lx + colw - 0.3, y0 + 0.94, rx - 0.08, y0 + 0.94);
+  src(rx, "Deezer", "matched on artist, title, length");
+  stat(rx, y0 + 1.35, "72%", "matched", "of mood tracks (genre: 94%)");
+  text(s, [{ text: "Gives each recording its ", options: {} }, { text: "ISRC code", options: { bold: true } },
+           { text: ": who registered it. Used on slide 2.", options: {} }],
+       { x: rx, y: y0 + 2.2, w: colw, h: 0.7, fontSize: 13 });
+  text(s, [{ text: "+ 30 s previews", options: { bold: true } }, { text: " to compare the sound (slide 3)" }],
+       { x: rx, y: y0 + 2.95, w: colw, h: 0.6, fontSize: 13 });
+
+  // 2 flag and count
+  step(s, 2, "Flag ghost-like names, then count", c2x + pad, y0 + 0.22, c2w - 2 * pad);
+  const hw = 2.6, fx = c2x + pad, kx = c2x + c2w - pad - hw;
+  text(s, "Ghost-like if ≥ 4 of 5 missing:", { x: fx, y: y0 + 0.8, w: hw, h: 0.3, fontSize: 13, bold: true });
   ["Verified badge", "Bio", "External link", "Gallery photo", "“This Is” playlist"].forEach((m, i) => {
-    const y = y0 + 1.42 + i * 0.36;
-    s.addShape(pres.shapes.OVAL, { x, y: y + 0.07, w: 0.16, h: 0.16, fill: { color: "FFFFFF" },
+    const y = y0 + 1.13 + i * 0.25;
+    s.addShape(pres.shapes.OVAL, { x: fx, y: y + 0.07, w: 0.15, h: 0.15, fill: { color: "FFFFFF" },
       line: { color: MUTED, width: 1 }, objectName: `marker ${i + 1}` });
-    text(s, m, { x: x + 0.28, y, w: w - 0.28, h: 0.3, fontSize: 14, valign: "middle" });
+    text(s, m, { x: fx + 0.26, y, w: hw - 0.26, h: 0.28, fontSize: 13, valign: "middle" });
   });
-  text(s, "Tested on groups it never saw:", { x, y: y0 + 3.4, w, h: 0.3, fontSize: 14, bold: true });
-  fig(s, "s1_check.png", xs[1] + 0.12, y0 + 3.75, cw - 0.24, "Share flagged: 90% of a leaked ghost catalogue, 3% of known real artists");
+  text(s, "Checked on known groups:", { x: fx, y: y0 + 2.42, w: hw, h: 0.28, fontSize: 13, bold: true });
+  fig(s, "s1_check.png", fx, y0 + 2.68, hw - 0.5, "Share flagged: 90% of a leaked ghost catalogue, 3% of known real artists");
 
-  // 3 count
-  x = xs[2] + pad;
-  step(s, 3, "Count the slots", x, y0 + 0.3, w);
-  text(s, "75%", { x, y: y0 + 0.95, w, h: 1.0, fontSize: 66, bold: true, color: GHOST, fontFace: HEAD });
-  text(s, "of mood-playlist slots go to ghost-like names", { x, y: y0 + 2.0, w, h: 0.65, fontSize: 16, bold: true });
-  fig(s, "s1_slots.png", xs[2] + 0.12, y0 + 2.95, cw - 0.24, "Share of slots: mood playlists 75% ghost-like, genre playlists 1%");
+  arrow(s, fx + hw + 0.06, y0 + 1.15, kx - 0.06, y0 + 1.15);
+  text(s, "75%", { x: kx, y: y0 + 0.7, w: hw, h: 0.9, fontSize: 54, bold: true, color: GHOST, fontFace: HEAD });
+  text(s, "of mood-playlist slots go to ghost-like names", { x: kx, y: y0 + 1.55, w: hw, h: 0.6, fontSize: 15, bold: true });
+  fig(s, "s1_slots.png", kx, y0 + 2.2, hw - 0.45, "Share of slots: mood playlists 75% ghost-like, genre playlists 1%");
   text(s, [{ text: "■ ", options: { color: GHOST } }, { text: "ghost-like    " },
            { text: "■ ", options: { color: REAL } }, { text: "real artist" }],
-       { x, y: y0 + 4.6, w, h: 0.3, fontSize: 13, color: MUTED });
+       { x: kx, y: y0 + 3.3, w: hw, h: 0.28, fontSize: 12, color: MUTED });
 
   s.addNotes(
-`~3 min. Story: collect → flag → count.
+`~3 min. Story: why it matters → collect → flag and count.
 
-Why we care: playlists like Sleep or Deep Focus are among the most followed on Spotify. Journalists report that much of this music comes from a few production companies under invented artist names, but that reporting rests on leaked lists. We ask what public data alone can show.
+Opener (top row, ~45 s). Playlists like Sleep, Deep Focus or Jazz in the Background are among the most followed on Spotify. A slot on them brings millions of streams, so every slot is worth real money. And there is a growing worry about what fills them: cheap, mass-produced background music, and now AI slop. Liz Pelly (Harper's, 2025) describes Spotify's "Perfect Fit Content" programme, in which production companies supply cheap music for its playlists, and in July 2026 Deezer said over half of its daily uploads were fully AI-generated. Leaks suggest that single companies release this music under hundreds of invented artist names: in 2022 Dagens Nyheter got a list of 830 names linked to one company, Firefly Entertainment, and in 2024 traced one composer behind more than 650 names. But all of this rests on leaked lists and interviews. Our question: can public data alone show who really holds these slots, and how they reach listeners?
 
-1 Collect. One snapshot through the web player on 4 November 2026 (the official API no longer serves editorial playlists). 45 mood playlists plus 5 genre playlists with known real artists as a control. 9,004 slots, 5,024 artist names. For every name its public profile and its "Fans also like" list; for every track its credits, cover, preview, and, via Deezer, its recording code (ISRC).
+1 Collect. Spotify's official API no longer serves editorial playlists, so we took one snapshot through the web player on 4 November 2026: 45 mood playlists plus 5 genre playlists with known real artists as a control. That is 9,004 slots, 8,093 tracks and 5,024 artist names. For every track the credits and cover; for every name its public profile and its "Fans also like" list (100,380 links).
+Spotify does not show the recording code, so we matched every track to Deezer's public API by artist, title and length (titles agree for over 99% of matches). Deezer found 72% of mood-playlist tracks and 94% of genre tracks. That gives each recording its ISRC code, which says who registered it (slide 2), and a 30-second preview, which we use to compare the sound (slide 3).
 
-2 Flag. A name is ghost-like if at least 4 of 5 public markers are missing: verified badge, bio, external link, gallery photo, a "This Is" playlist. It is one sentence anyone can check, and it uses nothing we test later: not who made the music, not listening, not recommendations.
-Does it find the right names? It flags 90% of the names released by Firefly Entertainment, the company in the Dagens Nyheter leak, and only 3% of the artists on the genre playlists. (Its main error: 18% of classical-label names, session ensembles without profiles. That error works against our results.)
-
-3 Count. Ghost-like names hold 75% of mood-playlist slots, against 1% on the genre playlists. Next question: who is behind them?`);
+2 Flag and count. A name is ghost-like if at least 4 of 5 public markers are missing: verified badge, bio, external link, gallery photo, a "This Is" playlist. It is one sentence anyone can check, and it uses nothing we test later: not who made the music, not listening, not recommendations.
+Does it find the right names? It flags 90% of the names released by Firefly Entertainment and only 3% of the artists on the genre playlists. (Its main error: 18% of classical-label names, session ensembles without profiles. That error works against our results.)
+Then count: ghost-like names hold 75% of mood-playlist slots, against 1% on the genre playlists. Next question: who is behind them?`);
 }
 
 // ================================================================ slide 2

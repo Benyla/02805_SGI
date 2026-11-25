@@ -48,8 +48,8 @@ def s1_slots() -> None:
     """Two 100% bars: ghost-like vs real share of slots, mood vs genre playlists."""
     pa = slots()
     share = pa.groupby("group").label.value_counts(normalize=True).unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(3.5, 1.6))
-    fig.subplots_adjust(left=0.30, right=0.99, top=0.98, bottom=0.04)
+    fig, ax = plt.subplots(figsize=(2.6, 1.3))  # half of the combined flag-and-count card
+    fig.subplots_adjust(left=0.36, right=0.99, top=0.98, bottom=0.04)
     rows = [("functional", "Mood\nplaylists"), ("genre", "Genre\n(control)")]
     for y, (g, lab) in zip([1, 0], rows):
         gh = share.loc[g, "ghost"]
@@ -71,8 +71,8 @@ def s1_check() -> None:
     ref = pd.read_csv(PROCESSED / "convergence_reference_sets.csv").set_index("name")
     rows = [("Firefly Entertainment", "Leaked ghost\ncatalogue", GHOST),
             ("Genre-playlist artists", "Known real\nartists", REAL)]
-    fig, ax = plt.subplots(figsize=(3.5, 1.45))
-    fig.subplots_adjust(left=0.36, right=0.86, top=0.98, bottom=0.04)
+    fig, ax = plt.subplots(figsize=(2.6, 1.15))  # half of the combined flag-and-count card
+    fig.subplots_adjust(left=0.44, right=0.84, top=0.98, bottom=0.04)
     for y, (key, lab, c) in zip([1, 0], rows):
         s = ref.loc[key, "share_ghost"]
         ax.barh(y, 1, color="white", height=0.5)  # the card behind is grey
